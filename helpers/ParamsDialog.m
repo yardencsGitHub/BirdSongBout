@@ -22,7 +22,7 @@ function varargout = ParamsDialog(varargin)
 
 % Edit the above text to modify the response to help ParamsDialog
 
-% Last Modified by GUIDE v2.5 06-Oct-2017 12:06:37
+% Last Modified by GUIDE v2.5 30-Nov-2017 14:58:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -191,6 +191,52 @@ function NewTag_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function NewTag_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to NewTag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function caxis_min_Callback(hObject, eventdata, handles)
+% hObject    handle to caxis_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of caxis_min as text
+%        str2double(get(hObject,'String')) returns contents of caxis_min as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function caxis_min_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to caxis_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function caxis_max_Callback(hObject, eventdata, handles)
+% hObject    handle to caxis_max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of caxis_max as text
+%        str2double(get(hObject,'String')) returns contents of caxis_max as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function caxis_max_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to caxis_max (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

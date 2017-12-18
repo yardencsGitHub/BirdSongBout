@@ -150,7 +150,7 @@ function elements = SingleSequenceManual(DIR,filename,annotation_filename,templa
 
 %%%%%%%%%%%%%%%%% functions
     function draw_spec(axes_handle) %(T >= tonset & T<=toffset) T >= tonset & T<=toffset
-        imagesc(axes_handle,T,F(F<fmax),abs(S(F<fmax,:))); colormap(1-gray); caxis([0 5]); xlim([tonset toffset]);
+        imagesc(axes_handle,T,F(F<fmax),abs(S(F<fmax,:))); colormap(1-gray); caxis([0 15]); xlim([tonset toffset]);
         axes(axes_handle);
         set(gca,'YDir','normal');
         hold on; 
@@ -197,27 +197,24 @@ function elements = SingleSequenceManual(DIR,filename,annotation_filename,templa
                         if (xpos > minx & xpos < maxx)
                             if (current_syllables(syl_cnt) ~= curr_active)
                                 prev_active = find(current_syllables == curr_active);
-                               
-                                %if ~isempty(prev_active)
-% % %                                     curr_active_handle = imrect(ax,[elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) ...
-% % %                                      0 elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) - ...
-% % %                                      elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) fmax]);
-% % %                                     hs ={hs{:} curr_active_handle};
-% % %                                     textpos = getPosition(curr_active_handle);
-% % %                                     h = text(axes_handle,textpos(1)+textpos(3)/2,text_height,num2str(elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),...
-% % %                                         'Units','data','HorizontalAlignment','center','FontSize',24, ...
-% % %                                         'Color', colors(find(syllables == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),:));
-% % %                                     set(curr_active_handle,'UserData', h);
-% % %                                     id = addNewPositionCallback(curr_active_handle,@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 text_height 0]));
-% % %                                     % result_hs{end}
-% % %                                 
-                                    
-                                    %cellfun(@delete,hs);
-                                    update_elements;
+                                if ~isempty(prev_active)
+                                    curr_active_handle = imrect(ax,[elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) ...
+                                     0 elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) - ...
+                                     elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) fmax]);
+                                    result_hs ={result_hs{:} curr_active_handle};
+                                    textpos = getPosition(curr_active_handle);
+                                    h = text(axes_handle,textpos(1)+textpos(3)/2,text_height,num2str(elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),...
+                                        'Units','data','HorizontalAlignment','center','FontSize',24, ...
+                                        'Color', colors(find(syllables == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),:));
+                                    set(curr_active_handle,'UserData', h);
+                                    id = addNewPositionCallback(result_hs{end},@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 text_height 0]));
+                                
+                                
                                     curr_active = current_syllables(syl_cnt);
+                                    %cellfun(@delete,hs);
                                     remove_syllables;
                                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
-                               % end         
+                                end         
                             end
                         end
                     end
@@ -391,11 +388,10 @@ function elements = SingleSequenceManual(DIR,filename,annotation_filename,templa
                         elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) = [];
                         elements{file_loc_in_keys}.segAbsStartTimes(current_syllables(syl_cnt)) = [];
                         elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)) = [];
-                        remove_syllables;
                         current_syllables(syl_cnt+1:end) = current_syllables(syl_cnt+1:end) - 1;
                         current_syllables(syl_cnt) = [];        
                         %cellfun(@delete,hs);
-                        
+                        remove_syllables;
                         [hs, current_syllables] = display_rects(ax,[tonset toffset]);
 %                         delete(get(hs(syl_cnt),'UserData'));
 %                         delete(hs(syl_cnt));
