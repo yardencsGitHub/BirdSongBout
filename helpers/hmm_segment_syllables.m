@@ -4,7 +4,7 @@ function tot = hmm_segment_syllables(s,labels,fbins)
 % the input 'fbins' = [bin_min bin_max] holds the min (max) frequency bins to sum the spectrogram 
     nstates = 2;
     dlabels = find(diff([0 labels 0]) ~= 0);
-    tot=[];
+    tot = zeros(1,size(s,2));
     for loc = 1:numel(dlabels)-1
         sig = sum(s(fbins(1):fbins(2),dlabels(loc):dlabels(loc+1)-1)).^(1/3);
         sig = sig-min(sig);
@@ -17,7 +17,9 @@ function tot = hmm_segment_syllables(s,labels,fbins)
         if ~any(map_path == 1)
             map_path = ones(size(map_path));
         end
-        tot = [tot map_path];
+   
+        tot(dlabels(loc):dlabels(loc+1)-1) = map_path;
+
     end
 
 
