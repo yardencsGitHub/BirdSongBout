@@ -2,7 +2,7 @@
 addpath(genpath('/Users/yardenc/Documents/GitHub/pmtk3'),'-end');
 addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout/helpers'),'-end');
 cd('/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation');
-basdir = pwd;
+basedir = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation';
 birds = {'bird_1' 'bird_2' 'bird_3' 'bird_4' 'bird_5' 'bird_6'};
 for birdnum = 1:numel(birds)
     cd(fullfile(basedir,birds{birdnum},'mat'));
