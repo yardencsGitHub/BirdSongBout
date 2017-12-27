@@ -22,7 +22,7 @@ function varargout = ParamsDialog(varargin)
 
 % Edit the above text to modify the response to help ParamsDialog
 
-% Last Modified by GUIDE v2.5 30-Nov-2017 14:58:20
+% Last Modified by GUIDE v2.5 27-Dec-2017 16:36:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -241,6 +241,29 @@ function caxis_max_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in file_list.
+function file_list_Callback(hObject, eventdata, handles)
+% hObject    handle to file_list (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns file_list contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from file_list
+
+
+% --- Executes during object creation, after setting all properties.
+function file_list_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to file_list (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
