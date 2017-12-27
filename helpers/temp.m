@@ -1,17 +1,17 @@
-%     sig = sum(s(5:100,:));
-%     figure; h1 = subplot(2,1,1); plot(sig); hold on; plot(labels);
-%     axis tight
-% 
-%     h2 = subplot(2,1,2); imagesc(s);
-%     linkaxes([h1,h2],'x')
-%     
-%     %%
-%     
-%     dlabels = find(diff([0 labels 0]) ~= 0);
-%     locs = find(labels(dlabels(1:end-1)) ~= 0);
-%     fx = @(x)mean(sig(dlabels(x):(dlabels(x+1)-1)));
-%     figure; plot(arrayfun(fx,locs)')
-%     find(arrayfun(fx,locs)'< 0.1)
+    sig = sum(s(5:100,:));
+    figure; h1 = subplot(2,1,1); plot(sig); hold on; plot(labels);
+    axis tight
+
+    h2 = subplot(2,1,2); imagesc(s);
+    linkaxes([h1,h2],'x')
+    
+    %%
+    
+    dlabels = find(diff([0 labels 0]) ~= 0);
+    locs = find(labels(dlabels(1:end-1)) ~= 0);
+    fx = @(x)mean(sig(dlabels(x):(dlabels(x+1)-1)));
+    figure; plot(arrayfun(fx,locs)')
+    find(arrayfun(fx,locs)'< 0.1)
     %%
     
 % addpath(genpath('/Users/yardenc/Documents/GitHub/pmtk3'),'-end');
