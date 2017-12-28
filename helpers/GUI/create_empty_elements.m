@@ -9,7 +9,7 @@ function [keys, elements] = create_empty_elements(DIR,bird_exper_name)
     ord = [];
     
     for cnt = 1:numel(keys)
-        tokens = regexp(keys{i},'_','split');
+        tokens = regexp(keys{cnt},'_','split');
         ord = [ord; str2num(tokens{2})];
         base_struct = struct('exper',exper, ...
                              'filenum',sprintf('%04d',cnt), ...
