@@ -106,7 +106,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     % create map
     h_map = figure('Position',[1394         969        1138         313]); 
     axes_map = axes;
-    plot(T,log(sum(abs(S(F<fmax & F>0,:)))));
+    plot_full_amplitude_envelope(axes_map);
+        
     xlim([tmin tmax]);
     
     tonset = 0;
@@ -116,6 +117,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     h_temp = figure('Position',[347         679        1963         254]); 
     ax_temp = axes;
     plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+    plot_full_amplitude_envelope(ax_temp);
     xlim([tonset toffset]);
     if (tmpthr == 0)
         tmpthr = quantile(log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))),0.1);
@@ -320,8 +322,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 %                 set(hf,'WindowbuttonDownFcn',@clickcallback)
 %                 set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
                 drawnow;
-                axes(ax_temp); hold off;
-                plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                axes(ax_temp); %hold off;
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
                 axes(ax);
@@ -337,8 +340,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 remove_syllables;
                 [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 drawnow;
-                axes(ax_temp); hold off;
-                plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                axes(ax_temp); %hold off;
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
                 axes(ax);
@@ -356,8 +360,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 %                 end
                 [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 drawnow;
-                axes(ax_temp); hold off;
-                plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                axes(ax_temp); %hold off;
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
                 axes(ax);
@@ -406,7 +411,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 % create map
                 h_map = figure('Position',[1394         969        1138         313]); 
                 axes_map = axes;
-                plot(T,log(sum(abs(S(F<fmax & F>0,:)))));
+                plot_full_amplitude_envelope(axes_map);
+                
                 xlim([tmin tmax]);
 
                 tonset = 0;
@@ -415,7 +421,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 
                 h_temp = figure('Position',[347         679        1963         254]); 
                 ax_temp = axes;
-                plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 if (tmpthr == 0)
                     tmpthr = quantile(log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))),0.1);
@@ -690,6 +697,27 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
             setPosition(hs{syl_cnt_in_idx},pos);
         else
             set(hs{syl_cnt_in_idx},'Position',pos);
+        end
+    end
+
+    function plot_full_amplitude_envelope(target_axes_handle)
+        if isempty(phrases)
+        plot(target_axes_handle,T,log(sum(abs(S(F<fmax & F>0,:)))));
+        else
+            logS = log(sum(abs(S(F<fmax & F>0,:))));
+            plot(target_axes_handle,T(T <= phrases.phraseFileStartTimes(1)),logS(T <= phrases.phraseFileStartTimes(1)),'Color',[0.5 0.5 0.5],'LineStyle',':');
+            hold on;
+            plot(target_axes_handle,T(T >= phrases.phraseFileEndTimes(end)),logS(T >= phrases.phraseFileEndTimes(end)),'Color',[0.5 0.5 0.5],'LineStyle',':');
+            for phrasenum = 1:numel(phrases.phraseType)
+                plot(target_axes_handle,T(T >= phrases.phraseFileStartTimes(phrasenum) & T <= phrases.phraseFileEndTimes(phrasenum)), ...
+                    logS(T >= phrases.phraseFileStartTimes(phrasenum) & T <= phrases.phraseFileEndTimes(phrasenum)), ...
+                    'Color',colors(find(syllables == phrases.phraseType(phrasenum)),:));
+                if (phrasenum < numel(phrases.phraseType))
+                    plot(target_axes_handle,T(T >= phrases.phraseFileEndTimes(phrasenum) & T <= phrases.phraseFileStartTimes(phrasenum+1)), ...
+                        logS(T >= phrases.phraseFileEndTimes(phrasenum) & T <= phrases.phraseFileStartTimes(phrasenum+1)), ...
+                        'Color',[0.5 0.5 0.5],'LineStyle',':');
+                end
+            end
         end
     end
 

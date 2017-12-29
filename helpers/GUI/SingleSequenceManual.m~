@@ -106,7 +106,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     % create map
     h_map = figure('Position',[1394         969        1138         313]); 
     axes_map = axes;
-    plot(T,log(sum(abs(S(F<fmax & F>0,:)))));
+    
+        
     xlim([tmin tmax]);
     
     tonset = 0;
@@ -385,7 +386,15 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 curr_active = -1;
                 current_label = -1;
                 filename = keys{params_handles.file_list.Value};
-                file_loc_in_keys = find(strcmp(keys,filename));
+                if (find(strcmp(keys,filename)) ~= file_loc_in_keys)
+                    file_loc_in_keys = find(strcmp(keys,filename));
+                else
+                    if (file_loc_in_keys < numel(keys))
+                        file_loc_in_keys = file_loc_in_keys + 1;
+                        filename = keys{file_loc_in_keys};
+                        params_handles.file_list.Value = file_loc_in_keys;
+                    end
+                end
                 [y,fs] = audioread(fullfile(DIR,filename));
                 tmin = 0;
                 tmax = numel(y)/fs;
@@ -530,7 +539,12 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     end
                     current_label = syllables(params_handles.SylTags.Value);
                     if (current_syllables(syl_cnt) < numel(elements{file_loc_in_keys}.segType))
-                    '8';
+                        elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)+1) = [];
+                        elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) = ...
+                            elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)+1); 
+                         elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)+1) = [];
+                        elements{file_loc_in_keys}.segAbsStartTimes(current_syllables(syl_cnt)+1) = [];
+                        elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)+1) = [];
                     end
                     %elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)) = current_label;
                     %cellfun(@delete,hs);
@@ -679,5 +693,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
             set(hs{syl_cnt_in_idx},'Position',pos);
         end
     end
+
+    function plot_full_amp
 
 end
