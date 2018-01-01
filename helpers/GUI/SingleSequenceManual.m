@@ -30,7 +30,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     
     if exist(template_filename)
         load(template_filename,'templates');
-        syllables = [[templates.wavs.segType] -1 102 103]; 
+        syllables = [[templates.wavs.segType] -1]; 
     else
         syllables = [-1 102 103];
     end
