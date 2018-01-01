@@ -45,6 +45,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     if exist(annotation_filename)
         load(annotation_filename,'keys','elements');
         filename = keys{1};
+        params_handles.file_name.String = filename;
         params_handles.file_list.String = keys;
         ord = [];
         dates = [];
@@ -265,6 +266,27 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         xpos = mouse_loc(1,1); ypos = mouse_loc(1,2);
         disp([xpos ypos]);
         switch evt.Key
+            case 'f'
+                range_rect = getrect(ax); 
+                tonset = range_rect(1);
+                toffset = range_rect(1)+range_rect(3);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
+                axes(ax);
+                remove_syllables;
+                xlim([tonset toffset]);  
+                [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+                axes(ax_temp);
+                
+                xlim([tonset toffset]);
+                thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
+                delete(h_line);
+                h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+                axes(ax);
+                
+            case 'p'
+                time_stamps = [1:numel(y)]/fs -1/fs;
+               soundsc(y(time_stamps >= tonset & time_stamps <= toffset),fs);
+               
             case 'g'
                 for syl_cnt = 1:numel(current_syllables) 
                         currpos = get_pos(syl_cnt);    
@@ -420,6 +442,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 curr_active = -1;
                 current_label = -1;
                 filename = keys{params_handles.file_list.Value};
+                params_handles.file_name.String = filename;
                 if (find(strcmp(keys,filename)) ~= file_loc_in_keys)
                     file_loc_in_keys = find(strcmp(keys,filename));
                 else

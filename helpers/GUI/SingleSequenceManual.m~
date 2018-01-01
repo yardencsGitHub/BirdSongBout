@@ -30,7 +30,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     
     if exist(template_filename)
         load(template_filename,'templates');
-        syllables = [[templates.wavs.segType] -1 102 103]; 
+        syllables = [[templates.wavs.segType] -1]; 
     else
         syllables = [-1 102 103];
     end
@@ -45,6 +45,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     if exist(annotation_filename)
         load(annotation_filename,'keys','elements');
         filename = keys{1};
+        params_handles.file_name.String = filename;
         params_handles.file_list.String = keys;
         ord = [];
         dates = [];
@@ -244,9 +245,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                                 mock_dist = abs(mock_centers - rec_center);
                                 mock_loc = min(find(mock_dist == min(mock_dist)));
                                 targetx = [mock_ons(mock_loc) mock_offs(mock_loc)];
-                                
-                                if ~any((elements{file_loc_in_keys}.segFileStartTimes < targetx(2)) & ...
-                                        (elements{file_loc_in_keys}.segFileEndTimes > targetx(1)))
+                                numtags = setdiff(1:numel(elements{file_loc_in_keys}.segType),current_syllables(syl_cnt)) ;
+                                if ~any((elements{file_loc_in_keys}.segFileStartTimes(numtags) < targetx(2)) & ...
+                                        (elements{file_loc_in_keys}.segFileEndTimes(numtags) > targetx(1)))
                                     set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) (mock_offs(mock_loc)-mock_ons(mock_loc)) rectpos(4)]);
                                 end
                             end
@@ -265,6 +266,34 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         xpos = mouse_loc(1,1); ypos = mouse_loc(1,2);
         disp([xpos ypos]);
         switch evt.Key
+            case 'f'
+                range_rect = getrect(ax); 
+                tonset = range_rect(1);
+                toffset = range_rect(1)+range_rect(3);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
+                axes(ax);
+                
+            case 'p'
+                time_stamps = [1:numel(y)]/fs -1/fs;
+               soundsc(y(time_stamps >= tonset & time_stamps <= toffset),fs);
+               
+            case 'g'
+                for syl_cnt = 1:numel(current_syllables) 
+                        currpos = get_pos(syl_cnt);    
+                                                 
+                        rectpos = get_pos(syl_cnt);
+                        rec_center = rectpos(1) + rectpos(3)/2;
+                        mock_dist = abs(mock_centers - rec_center);
+                        mock_loc = min(find(mock_dist == min(mock_dist)));
+                        targetx = [mock_ons(mock_loc) mock_offs(mock_loc)];
+                        numtags = setdiff(1:numel(elements{file_loc_in_keys}.segType),current_syllables(syl_cnt)) ;
+                        if ~any((elements{file_loc_in_keys}.segFileStartTimes(numtags) < targetx(2)) & ...
+                                (elements{file_loc_in_keys}.segFileEndTimes(numtags) > targetx(1)))
+                            set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) (mock_offs(mock_loc)-mock_ons(mock_loc)) rectpos(4)]);
+                        end
+                        
+                 end
+                      update_elements;
             case 'u'
                 min_gap = str2num(params_handles.MinGap.String);
                 min_syl = str2num(params_handles.MinSyl.String);
@@ -284,8 +313,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 end
                 win_size = toffset-tonset;
                 thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
-                thrflag = 0;
-                if (tmpthr ~= thr)
+                thrflag = 1;
+                %if (tmpthr ~= thr)
                     thrflag = 1;
                     tmpthr = thr;
                     [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,min_gap,min_syl);
@@ -293,7 +322,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     mock_offs = off_times(off_times > on_times(1));
                     mock_ons = on_times(on_times < mock_offs(end));
                     mock_centers = (mock_offs+mock_ons)/2; 
-                end
+                %end
                 axes(ax);
                 if (posflag == 1)
                     remove_syllables;
@@ -403,6 +432,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 curr_active = -1;
                 current_label = -1;
                 filename = keys{params_handles.file_list.Value};
+                params_handles.file_name.String = filename;
                 if (find(strcmp(keys,filename)) ~= file_loc_in_keys)
                     file_loc_in_keys = find(strcmp(keys,filename));
                 else
