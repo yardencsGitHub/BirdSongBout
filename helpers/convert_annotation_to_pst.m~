@@ -12,9 +12,9 @@ function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,i
 %
 % Output:
 %   DATA - a cell array of strings
-AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+AlphaNumeric = '[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-MaxSep = 2; % maximal phrase separation within a bout (sec)
+MaxSep = 1; % maximal phrase separation within a bout (sec)
 
 if ~exist(path_to_annotation_file)
     DATA = [];
@@ -78,19 +78,19 @@ for fnum = 1:numel(keys)
     try
         phrases = return_phrase_times(element);
         
-        currDATA = ['' AlphaNumeric(syllables == phrases.phraseType(1))];
+        currDATA = AlphaNumeric(syllables == phrases.phraseType(1));
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
             else
-                if (numel(currDATA) > min_phrases)
-                    DATA = {DATA{:} [currDATA '']};
+                if (numel(currDATA) >= min_phrases)
+                    DATA = {DATA{:} currDATA};
                 end
-                currDATA = ['' AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                currDATA = AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1));
            
             end
-            if (numel(currDATA) > min_phrases)
-                DATA = {DATA{:} [currDATA '']};
+            if (numel(currDATA) >= min_phrases)
+                DATA = {DATA{:} currDATA};
             end
         end
     catch em
