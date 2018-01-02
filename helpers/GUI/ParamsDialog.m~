@@ -179,7 +179,7 @@ if ~ismember(newtag,taglist)
     newt.startTime = 0;
     newt.endTime = 0;
     newt.fs = 0;
-    newt.wav = [];
+    newt.fs = 0;
     newt.segType = newtag;
     templates.wavs = [templates.wavs newt];
 end

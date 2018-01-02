@@ -15,7 +15,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     text_height = 8250;
     min_gap = 0.005;
     min_syl = 0.005;
-    map_caxis = [0 5];
+    map_caxis = [0 20];
     h_params = ParamsDialog('Position',window_positions(1,:));
     params_handles = get(h_params,'UserData');
     params_handles.MinGap.String = num2str(min_gap);
@@ -34,6 +34,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     else
         syllables = [-1 102 103];
     end
+    params_handles.show_button.UserData = templates;
     tmp = {}; 
     for ii = 1:numel(syllables)
         tmp = {tmp{:} num2str(syllables(ii))};
@@ -284,7 +285,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 axes(ax);
                 
             case 'p'
-                time_stamps = [1:numel(y)]/fs -1/fs;
+               time_stamps = [1:numel(y)]/fs -1/fs;
                soundsc(y(time_stamps >= tonset & time_stamps <= toffset),fs);
                
             case 'g'
@@ -433,7 +434,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 
 %         end
             case 'n'
-                 save(annotation_filename,'keys','elements');
+                 save(fullfile(DIR,annotation_filename),'keys','elements');
+                 save(fullfile(DIR,template_filename),'templates');
                  hgclose(hf);
                  hgclose(h_temp);
                  hgclose(h_map);     
@@ -450,6 +452,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         file_loc_in_keys = file_loc_in_keys + 1;
                         filename = keys{file_loc_in_keys};
                         params_handles.file_list.Value = file_loc_in_keys;
+                        params_handles.file_name.String = filename;
                     end
                 end
                 [y,fs] = audioread(fullfile(DIR,filename));
@@ -548,33 +551,6 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     remove_syllables;
                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 end
-% % %                 if (xpos > tonset & xpos < toffset)             
-% % %                   for syl_cnt = 1:numel(current_syllables) %start_syl:min(start_syl+numel(hs)-1,numel(syl_idx))
-% % %                     %syl_cnt = syl_num - start_syl+1;
-% % %                     rectpos = get_pos(syl_cnt);
-% % %                     maxx = rectpos(1)+rectpos(3);
-% % %                     minx = rectpos(1);
-% % %                     if (xpos > minx & xpos < maxx)                      
-% % %                         taglist = cellfun(@str2num,params_handles.SylTags.String);
-% % %                         if numel(taglist ~= numel(syllables))
-% % %                             syllables = taglist;
-% % %                             n_syllables = numel(syllables);
-% % %                             colors = distinguishable_colors(n_syllables,'w');
-% % %                         end
-% % %                         current_label = syllables(params_handles.SylTags.Value);
-% % %                         elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)) = current_label;
-% % %                       
-% % %                         %delete(hs(syl_cnt));
-% % %                         
-% % %                         break;
-% % %                     end
-% % %                   end
-% % %                   for syl_cnt = 1:numel(hs)
-% % %                     delete(get(hs(syl_cnt),'UserData'));
-% % %                     delete(hs(syl_cnt));
-% % %                   end
-% % %                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
-% % %                 end
             case 'b' % create threshold base boundaries
                 taglist = cellfun(@str2num,params_handles.SylTags.String);
                 if numel(taglist ~= numel(syllables))
@@ -593,8 +569,30 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     remove_syllables;
                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 end
-            case 'l'
-                current_label = input('Label: '); 
+            case 'l'         
+                if ismember(curr_active,current_syllables)
+                    syl_cnt = find(current_syllables == curr_active);
+                    taglist = cellfun(@str2num,params_handles.SylTags.String);
+                    if numel(unique([taglist;-1])) ~= numel(syllables)
+                        syllables = taglist;
+                        n_syllables = numel(syllables);
+                        colors = distinguishable_colors(n_syllables,'w');
+                    end
+                    current_label = syllables(params_handles.SylTags.Value);
+                    if (current_label == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)))
+                        time_stamps = [1:numel(y)]/fs -1/fs;
+                        templates.wavs(params_handles.SylTags.Value).segType = current_label;
+                        templates.wavs(params_handles.SylTags.Value).filename = keys{params_handles.file_list.Value};
+                        templates.wavs(params_handles.SylTags.Value).startTime = elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt));
+                        templates.wavs(params_handles.SylTags.Value).endTime = elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt));
+                        templates.wavs(params_handles.SylTags.Value).fs = fs;
+                        templates.wavs(params_handles.SylTags.Value).wav = y(time_stamps >= templates.wavs(params_handles.SylTags.Value).startTime & ...
+                            time_stamps <= templates.wavs(params_handles.SylTags.Value).endTime);
+                        params_handles.show_button.UserData = templates;
+                    end
+                        
+                end
+                %current_label = input('Label: '); 
             case 'j' % joint current with next. label is current
                 if ismember(curr_active,current_syllables)
                     syl_cnt = find(current_syllables == curr_active);
