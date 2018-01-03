@@ -22,7 +22,7 @@ function varargout = ParamsDialog(varargin)
 
 % Edit the above text to modify the response to help ParamsDialog
 
-% Last Modified by GUIDE v2.5 02-Jan-2018 13:05:40
+% Last Modified by GUIDE v2.5 03-Jan-2018 15:29:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -173,7 +173,12 @@ function AddTag_Callback(hObject, eventdata, handles)
 taglist = cellfun(@str2num,handles.SylTags.String);
 newtag = str2num(handles.NewTag.String{:});
 if ~ismember(newtag,taglist)
-    handles.SylTags.String(numel(handles.SylTags.String)+1) = {num2str(newtag)};
+    if ismember(-1,taglist)      
+        handles.SylTags.String(numel(handles.SylTags.String)) = {num2str(newtag)};
+        handles.SylTags.String(numel(handles.SylTags.String)+1) = {num2str(-1)};
+    else
+        handles.SylTags.String(numel(handles.SylTags.String)+1) = {num2str(newtag)};
+    end
     templates = handles.show_button.UserData;
     newt.filename = '';
     newt.startTime = 0;
@@ -183,6 +188,7 @@ if ~ismember(newtag,taglist)
     newt.segType = newtag;
     templates.wavs = [templates.wavs newt];
 end
+handles.show_button.UserData = templates;
 %new
 
 
@@ -293,3 +299,18 @@ sig = templates.wavs(sylnum).wav;
 [S,F,T,P] = spectrogram((sig/(sqrt(mean(sig.^2)))),220,220-44,512,FS,'reassigned');
 sig_len = size(S,2);
 figure; imagesc(T,F,abs(S)); colormap(1-gray); set(gca,'Ydir','normal'); ylim([fmin fmax]); caxis([str2num(handles.caxis_min.String) str2num(handles.caxis_max.String)]); set(gca,'FontSize',16); title(['Syllable ' num2str(templates.wavs(sylnum).segType)]);
+
+
+% --- Executes on button press in save_settings.
+function save_settings_Callback(hObject, eventdata, handles)
+% hObject    handle to save_settings (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+settings_params = handles.save_settings.UserData{1};
+window_handles = handles.save_settings.UserData{2};
+settings_params.window_positions = [window_handles{1}.figure1.Position;get(window_handles{2},'Position');get(window_handles{3},'Position');get(window_handles{4},'Position')];
+save(handles.save_settings.UserData{3},'settings_params');
+
+
+
+    

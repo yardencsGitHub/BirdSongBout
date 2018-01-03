@@ -1,11 +1,13 @@
-function [keys, elements] = create_empty_elements(DIR,bird_exper_name)
+function [keys, elements, templates] = create_empty_elements(DIR,bird_exper_name,exper)
     % creates the basic structures for annotating all wav files in DIR
     % input the bird's name in bird_exper_name
     elements = {};
     d = dir([DIR '/*.wav']);
     keys = {d.name};
-    exper = struct('birdname',bird_exper_name,'expername','Recording from Canary',...
-            'desiredInSampRate',48000,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
+    if isempty(exper)
+        exper = struct('birdname',bird_exper_name,'expername','Recording from Canary',...
+                'desiredInSampRate',48000,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
+    end
     ord = [];
     
     for cnt = 1:numel(keys)
@@ -17,7 +19,7 @@ function [keys, elements] = create_empty_elements(DIR,bird_exper_name)
                              'segFileStartTimes',[], ...
                              'segFileEndTimes',[], ...
                              'segType',[], ...
-                             'fs',48000, ...
+                             'fs',exper.desiredInSampRate, ...
                              'drugstatus', 'No Drug', ...
                              'directstatus', 'Undirected');
          elements = {elements{:} base_struct};
@@ -25,4 +27,11 @@ function [keys, elements] = create_empty_elements(DIR,bird_exper_name)
     [locs,indx] = sort(ord);
     elements = elements(indx);
     keys = keys(indx);
+    
+    templates.wavs(1).filename = '';
+    templates.wavs(1).startTime = 0;
+    templates.wavs(1).endTime = 0;
+    templates.wavs(1).fs = exper.desiredInSampRate;
+    templates.wavs(1).wav = [];
+    templates.wavs(1).segType = 1;
 end

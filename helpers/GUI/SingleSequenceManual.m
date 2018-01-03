@@ -1,40 +1,50 @@
 function SingleSequenceManual(DIR,annotation_filename,template_filename)
-%%
-    window_positions = [5.1667   71.7333  140.8333   20.2667; ...
-                        883        1019        1660         313; ...
-                        116         691        2385         254; ...
-                        116          94        2385         518];
-    % Day = '2017_06_28';
-    % sylnum = 8;
-    tmpthr=0;
-    win_size = 1;
-    max_win_size = 3;
-    t_step = 0.5;
-    FS = 48000;
-    fmax = 8000;
-    text_height = 8250;
-    min_gap = 0.005;
-    min_syl = 0.005;
-    map_caxis = [0 20];
-    h_params = ParamsDialog('Position',window_positions(1,:));
+    settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
+    settings_file_name = 'BoutAnnotation_settings_file.mat';
+    full_setting_path = fullfile(settings_file_path,settings_file_name);
+    if exist(fullfile(settings_file_path,settings_file_name))
+        load(fullfile(settings_file_path,settings_file_name),'settings_params')
+    else
+        settings_params.window_positions = [5.1667   71.7333  140.8333   20.2667; ...
+                            883        1019        1660         313; ...
+                            116         691        2385         254; ...
+                            116          94        2385         518];
+        settings_params.tmpthr = 0;
+        settings_params.win_size = 1;
+        max_settings_params.win_size = 3;
+        settings_params.t_step = 0.5;
+        settings_params.FS = 48000;
+        settings_params.fmax = 8000;
+        settings_params.text_height = 8250;
+        settings_params.min_gap = 0.005;
+        settings_params.min_syl = 0.005;
+        settings_params.map_caxis = [0 20];
+        save(fullfile(settings_file_path,settings_file_name),'settings_params');
+    end
+    h_params = ParamsDialog('Position',settings_params.window_positions(1,:));
     params_handles = get(h_params,'UserData');
-    params_handles.MinGap.String = num2str(min_gap);
-    params_handles.MinSyl.String = num2str(min_syl);
-    params_handles.StepSize.String = num2str(t_step);
-    params_handles.caxis_min.String = num2str(map_caxis(1));
-    params_handles.caxis_max.String = num2str(map_caxis(2));
+    params_handles.MinGap.String = num2str(settings_params.min_gap);
+    params_handles.MinSyl.String = num2str(settings_params.min_syl);
+    params_handles.StepSize.String = num2str(settings_params.t_step);
+    params_handles.caxis_min.String = num2str(settings_params.map_caxis(1));
+    params_handles.caxis_max.String = num2str(settings_params.map_caxis(2));
     params_handles.dir_name.String = DIR;
+    
     %%
     cd (DIR);
     wav_files = dir('*.wav');
     
     if exist(template_filename)
         load(template_filename,'templates');
-        syllables = [[templates.wavs.segType] -1]; 
+        if ~ismember(-1,[templates.wavs.segType])
+            syllables = [[templates.wavs.segType] -1]; 
+        else
+            syllables = [templates.wavs.segType];
+        end
     else
-        syllables = [-1 102 103];
+        syllables = [1 -1];
     end
-    params_handles.show_button.UserData = templates;
+    
     tmp = {}; 
     for ii = 1:numel(syllables)
         tmp = {tmp{:} num2str(syllables(ii))};
@@ -62,7 +72,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                              'segFileStartTimes',[], ...
                              'segFileEndTimes',[], ...
                              'segType',[], ...
-                             'fs',FS, ...
+                             'settings_params.FS',settings_params.FS, ...
                              'drugstatus', 'No Drug', ...
                              'directstatus', 'Undirected');
             elements = [elements; base_struct];
@@ -78,39 +88,64 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         keys = keys(indx);
         dates = dates(indx,:);
         file_loc_in_keys = find(strcmp(keys,filename));
-        unique_dates = datestr(setdiff(unique(datenum(dates)),[736804]),'yyyy_mm_dd'); %does not include 04/19-21th (remove for other birds)
+        
+        %unique_dates = datestr(setdiff(unique(datenum(dates)),[736804]),'yyyy_mm_dd'); %does not include 04/19-21th (remove for other birds)
     else
         bird_exper_name = input('Type bird name: ');
+        [y,fs] = audioread(wav_files(1).name);
         exper = struct('birdname',bird_exper_name,'expername','Recording from Canary',...
-            'desiredInSampRate',48000,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
-        elements = struct('exper',expr, ...
-                             'filenum','0001', ...
-                             'segAbsStartTimes',[], ...
-                             'segFileStartTimes',[], ...
-                             'segFileEndTimes',[], ...
-                             'segType',[], ...
-                             'fs',FS, ...
-                             'drugstatus', 'No Drug', ...
-                             'directstatus', 'Undirected');
+            'desiredInSampRate',fs,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
+        
+        [keys, elements, templates] = create_empty_elements(DIR,bird_exper_name,exper);
+        annotation_filename = input('Type ANNOTATION file name: ');
+        if ~strcmp(annotation_filename(end-3:end),'.mat')
+            annotation_filename = [annotation_filename '.mat'];
+        end
+        save(fullfile(DIR,annotation_filename),'keys','elements');
+        template_filename = input('Type TEMPLATE file name: ');
+        if ~strcmp(template_filename(end-3:end),'.mat')
+            template_filename = [template_filename '.mat'];
+        end
+        save(fullfile(DIR,template_filename),'templates');
+        file_loc_in_keys = 1;
+        filename = keys{1};
+        params_handles.file_name.String = filename;
+        params_handles.file_list.String = keys;
+        ord = [];
+        dates = [];
+
+     
+        for i = 1:numel(keys)
+            tokens = regexp(keys{i},'_','split');
+            ord = [ord; str2num(tokens{2})];
+            dates = [dates; char(join(tokens(3:5),'_'))];
+             
+        end
+        [locs,indx] = sort(ord);
+        elements = elements(indx);
+        keys = keys(indx);
+        dates = dates(indx,:);
+        file_loc_in_keys = find(strcmp(keys,filename));
           
     end
+    params_handles.show_button.UserData = templates;
 %%
     gr_lines = [];
     rd_lines = [];
     curr_active = -1;
     current_label = -1;
     filename = keys{1};
-    [y,fs] = audioread(fullfile(DIR,filename));
+    [y,settings_params.FS] = audioread(fullfile(DIR,filename));
     tmin = 0;
-    tmax = numel(y)/fs;
-    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,fs);%,'reassigned');
+    tmax = numel(y)/settings_params.FS;
+    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
     if ~isempty(elements{file_loc_in_keys}.segType)
         phrases = return_phrase_times(elements{file_loc_in_keys});
     else
         phrases = [];
     end
     % create map
-    h_map = figure('Position',window_positions(2,:)); 
+    h_map = figure('Position',settings_params.window_positions(2,:)); 
     axes_map = axes;
     plot_full_amplitude_envelope(axes_map);
     set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
@@ -119,30 +154,30 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     
     
     tonset = 0;
-    toffset = win_size;
-    h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
-    h_temp = figure('Position',window_positions(3,:)); 
+    toffset = settings_params.win_size;
+    h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+    h_temp = figure('Position',settings_params.window_positions(3,:)); 
     ax_temp = axes;
-    plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+    %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
     plot_full_amplitude_envelope(ax_temp);
     xlim([tonset toffset]);
-    if (tmpthr == 0)
-        tmpthr = quantile(log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))),0.1);
+    if (settings_params.tmpthr == 0)
+        settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
     end
-    h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+    h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
     pause;
     thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
-    tmpthr = thr;
+    settings_params.tmpthr = thr;
     
         %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<fmax & F>0,:)))),T,thr,min_gap,min_syl);
+    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
     % prepare mock syllables for auto positioning
-    mock_offs = off_times(off_times > on_times(1));
-    mock_ons = on_times(on_times < mock_offs(end));
-    mock_centers = (mock_offs+mock_ons)/2;
+    mock_ofsettings_params.FS = off_times(off_times > on_times(1));
+    mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
+    mock_centers = (mock_ofsettings_params.FS+mock_ons)/2;
     %
 
-    hf=figure('Position',window_positions(4,:));
+    hf=figure('Position',settings_params.window_positions(4,:));
     ax = axes;
     draw_spec(ax);
     
@@ -152,10 +187,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     set(hf,'WindowbuttonDownFcn',@clickcallback)
     set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
     drawnow;
-    
+    window_handles = {params_handles h_map h_temp hf};
+    params_handles.save_settings.UserData = {settings_params window_handles full_setting_path};
 %%%%%%%%%%%%%%%%% functions
     function draw_spec(axes_handle) %(T >= tonset & T<=toffset) T >= tonset & T<=toffset
-        imagesc(axes_handle,T,F(F<fmax),abs(S(F<fmax,:))); colormap(1-gray); caxis(map_caxis); xlim([tonset toffset]);
+        imagesc(axes_handle,T,F(F<settings_params.fmax),abs(S(F<settings_params.fmax,:))); colormap(1-gray); caxis(settings_params.map_caxis); xlim([tonset toffset]);
         axes(axes_handle);
         set(gca,'YDir','normal');
         hold on; 
@@ -172,11 +208,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         gr_lines = [];
         rd_lines = [];
         for line_cnt = 1:numel(on_times)
-            h = line([on_times(line_cnt) on_times(line_cnt)],[0 fmax],'Color',[0 0.7 0]);
+            h = line([on_times(line_cnt) on_times(line_cnt)],[0 settings_params.fmax],'Color',[0 0.7 0]);
             gr_lines = [gr_lines;h];
         end
         for line_cnt = 1:numel(off_times)
-            h = line([off_times(line_cnt) off_times(line_cnt)],[0 fmax],'Color',[0.7 0 0]);
+            h = line([off_times(line_cnt) off_times(line_cnt)],[0 settings_params.fmax],'Color',[0.7 0 0]);
             rd_lines = [rd_lines;h];
         end
     end
@@ -206,14 +242,14 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                                 %if ~isempty(prev_active)
 % % %                                     curr_active_handle = imrect(ax,[elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) ...
 % % %                                      0 elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) - ...
-% % %                                      elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) fmax]);
+% % %                                      elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) settings_params.fmax]);
 % % %                                     hs ={hs{:} curr_active_handle};
 % % %                                     textpos = getPosition(curr_active_handle);
-% % %                                     h = text(axes_handle,textpos(1)+textpos(3)/2,text_height,num2str(elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),...
+% % %                                     h = text(axes_handle,textpos(1)+textpos(3)/2,settings_params.text_height,num2str(elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),...
 % % %                                         'Units','data','HorizontalAlignment','center','FontSize',24, ...
 % % %                                         'Color', colors(find(syllables == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt))),:));
 % % %                                     set(curr_active_handle,'UserData', h);
-% % %                                     id = addNewPositionCallback(curr_active_handle,@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 text_height 0]));
+% % %                                     id = addNewPositionCallback(curr_active_handle,@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 settings_params.text_height 0]));
 % % %                                     % result_hs{end}
 % % %                                 
                                     
@@ -245,11 +281,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                                 rec_center = rectpos(1) + rectpos(3)/2;
                                 mock_dist = abs(mock_centers - rec_center);
                                 mock_loc = min(find(mock_dist == min(mock_dist)));
-                                targetx = [mock_ons(mock_loc) mock_offs(mock_loc)];
+                                targetx = [mock_ons(mock_loc) mock_ofsettings_params.FS(mock_loc)];
                                 numtags = setdiff(1:numel(elements{file_loc_in_keys}.segType),current_syllables(syl_cnt)) ;
                                 if ~any((elements{file_loc_in_keys}.segFileStartTimes(numtags) < targetx(2)) & ...
                                         (elements{file_loc_in_keys}.segFileEndTimes(numtags) > targetx(1)))
-                                    set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) (mock_offs(mock_loc)-mock_ons(mock_loc)) rectpos(4)]);
+                                    set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) (mock_ofsettings_params.FS(mock_loc)-mock_ons(mock_loc)) rectpos(4)]);
                                 end
                             end
                       end
@@ -267,11 +303,104 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         xpos = mouse_loc(1,1); ypos = mouse_loc(1,2);
         disp([xpos ypos]);
         switch evt.Key
+            case 'e'
+                current_entry = file_loc_in_keys;
+                button = questdlg(['Are you sue that you want to exclude ' keys{current_entry}],'Deleting? Are you mad?','Yes','No','No');
+                if strcmp(button,'Yes')
+                    keys(current_entry) = [];
+                    elements(current_entry) = [];
+                    if (numel(keys) < current_entry)
+                        file_loc_in_keys = numel(keys);
+                    end
+                    filename = keys{file_loc_in_keys};
+                    params_handles.file_name.String = filename;
+                    params_handles.file_list.String = keys;
+                    save(fullfile(DIR,annotation_filename),'keys','elements');
+                     save(fullfile(DIR,template_filename),'templates');
+                     settings_params.window_positions = [window_handles{1}.figure1.Position;get(window_handles{2},'Position');get(window_handles{3},'Position');get(window_handles{4},'Position')];
+                     %save(fullfile(settings_file_path,settings_file_name),'settings_params');
+                     hgclose(hf);
+                     hgclose(h_temp);
+                     hgclose(h_map);     
+                     gr_lines = [];
+                    rd_lines = [];
+                    curr_active = -1;
+                    current_label = -1;
+%                     filename = keys{params_handles.file_list.Value};
+%                     params_handles.file_name.String = filename;
+                   
+                    [y,settings_params.FS] = audioread(fullfile(DIR,filename));
+                    tmin = 0;
+                    tmax = numel(y)/settings_params.FS;
+                    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+                    if ~isempty(elements{file_loc_in_keys}.segType)
+                        phrases = return_phrase_times(elements{file_loc_in_keys});
+                    else
+                        phrases = [];
+                    end
+                    % create map
+                    h_map = figure('Position',settings_params.window_positions(2,:)); 
+                    axes_map = axes;
+                    plot_full_amplitude_envelope(axes_map);
+                    set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
+                    set(axes_map,'YTick',[]);
+                    xlim([tmin tmax]);
+
+                    tonset = 0;
+                    toffset = settings_params.win_size;
+                    h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+
+                    h_temp = figure('Position',settings_params.window_positions(3,:)); 
+                    ax_temp = axes;
+                    %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
+                    plot_full_amplitude_envelope(ax_temp);
+                    xlim([tonset toffset]);
+                    if (settings_params.tmpthr == 0)
+                        settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
+                    end
+                    h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
+                    pause;
+                    thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
+                    settings_params.tmpthr = thr;
+
+                        %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
+                    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
+                    % prepare mock syllables for auto positioning
+                    mock_ofsettings_params.FS = off_times(off_times > on_times(1));
+                    mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
+                    mock_centers = (mock_ofsettings_params.FS+mock_ons)/2;
+                    %
+
+                    hf=figure('Position',settings_params.window_positions(4,:)); 
+                    ax = axes;
+                    draw_spec(ax);
+
+
+                    [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+
+                    set(hf,'WindowbuttonDownFcn',@clickcallback)
+                    set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
+                    drawnow;
+                    window_handles = {params_handles h_map h_temp hf};
+                    params_handles.save_settings.UserData = {settings_params window_handles full_setting_path}; 
+                end
+            case 'r'
+                phrases = return_phrase_times(elements{file_loc_in_keys});
+                plot_full_amplitude_envelope(axes_map);
+                set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
+                set(axes_map,'YTick',[]);
+                tmin = 0;
+                tmax = numel(y)/settings_params.FS;
+                xlim(axes_map,[tmin tmax]);
+                h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+                plot_full_amplitude_envelope(ax_temp);
+                xlim(ax_temp,[tonset toffset]);
+                h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
             case 'f'
                 range_rect = getrect(ax); 
                 tonset = range_rect(1);
                 toffset = range_rect(1)+range_rect(3);
-                setPosition(h_rect,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
                 axes(ax);
                 remove_syllables;
                 xlim([tonset toffset]);  
@@ -280,13 +409,14 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 
                 xlim([tonset toffset]);
                 thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
+                settings_params.tmpthr = thr;
                 delete(h_line);
-                h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+                h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
                 
             case 'p'
-               time_stamps = [1:numel(y)]/fs -1/fs;
-               soundsc(y(time_stamps >= tonset & time_stamps <= toffset),fs);
+               time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
+               soundsc(y(time_stamps >= tonset & time_stamps <= toffset),settings_params.FS);
                
             case 'g'
                 for syl_cnt = 1:numel(current_syllables) 
@@ -296,23 +426,23 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         rec_center = rectpos(1) + rectpos(3)/2;
                         mock_dist = abs(mock_centers - rec_center);
                         mock_loc = min(find(mock_dist == min(mock_dist)));
-                        targetx = [mock_ons(mock_loc) mock_offs(mock_loc)];
+                        targetx = [mock_ons(mock_loc) mock_ofsettings_params.FS(mock_loc)];
                         numtags = setdiff(1:numel(elements{file_loc_in_keys}.segType),current_syllables(syl_cnt)) ;
                         if ~any((elements{file_loc_in_keys}.segFileStartTimes(numtags) < targetx(2)) & ...
                                 (elements{file_loc_in_keys}.segFileEndTimes(numtags) > targetx(1)))
-                            set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) (mock_offs(mock_loc)-mock_ons(mock_loc)) rectpos(4)]);
+                            set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) (mock_ofsettings_params.FS(mock_loc)-mock_ons(mock_loc)) rectpos(4)]);
                         end
                         
                  end
                       update_elements;
             case 'u'
-                min_gap = str2num(params_handles.MinGap.String);
-                min_syl = str2num(params_handles.MinSyl.String);
-                t_step = str2num(params_handles.StepSize.String);
-                old_caxis = map_caxis;
-                map_caxis = [str2num(params_handles.caxis_min.String) str2num(params_handles.caxis_max.String)];
-                if (sum(abs(old_caxis-map_caxis)) ~= 0)
-                    caxis(ax,map_caxis);
+                settings_params.min_gap = str2num(params_handles.MinGap.String);
+                settings_params.min_syl = str2num(params_handles.MinSyl.String);
+                settings_params.t_step = str2num(params_handles.StepSize.String);
+                old_caxis = settings_params.map_caxis;
+                settings_params.map_caxis = [str2num(params_handles.caxis_min.String) str2num(params_handles.caxis_max.String)];
+                if (sum(abs(old_caxis-settings_params.map_caxis)) ~= 0)
+                    caxis(ax,settings_params.map_caxis);
                 end
                 posflag = 0;
                 update_elements;
@@ -322,17 +452,17 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     posflag = 1;
                     tonset = new_tonset; toffset = new_toffset;
                 end
-                win_size = toffset-tonset;
+                settings_params.win_size = toffset-tonset;
                 thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
+                
+                %if (settings_params.tmpthr ~= thr)
                 thrflag = 1;
-                %if (tmpthr ~= thr)
-                    thrflag = 1;
-                    tmpthr = thr;
-                    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,min_gap,min_syl);
-                    % prepare mock syllables for auto positioning
-                    mock_offs = off_times(off_times > on_times(1));
-                    mock_ons = on_times(on_times < mock_offs(end));
-                    mock_centers = (mock_offs+mock_ons)/2; 
+                settings_params.tmpthr = thr;
+                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,settings_params.min_gap,settings_params.min_syl);
+                % prepare mock syllables for auto positioning
+                mock_ofsettings_params.FS = off_times(off_times > on_times(1));
+                mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
+                mock_centers = (mock_ofsettings_params.FS+mock_ons)/2; 
                 %end
                 axes(ax);
                 if (posflag == 1)
@@ -373,15 +503,17 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 %                 set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
                 drawnow;
                 axes(ax_temp); %hold off;
-                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
                 %plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 delete(h_line);
-                h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+                h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
+                
+                params_handles.save_settings.UserData = {settings_params window_handles full_setting_path};
             case 'x'
                 update_elements;
-                toffset = min(tmax,toffset+t_step); tonset = min([tonset+t_step,tmax-t_step,toffset-win_size]); 
+                toffset = min(tmax,toffset+settings_params.t_step); tonset = min([tonset+settings_params.t_step,tmax-settings_params.t_step,toffset-settings_params.win_size]); 
                 axes(ax); xlim([tonset toffset]);
 %                 for syl_cnt = 1:numel(hs)
 %                     delete(get(hs(syl_cnt),'UserData'));
@@ -392,16 +524,16 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 drawnow;
                 axes(ax_temp); %hold off;
-                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
                 %plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 delete(h_line);
-                h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+                h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
-                setPosition(h_rect,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
             case 'z'
                 update_elements;
-                tonset = max(tonset-t_step,tmin); toffset = max([tmin+t_step,toffset-t_step,tonset+win_size]);
+                tonset = max(tonset-settings_params.t_step,tmin); toffset = max([tmin+settings_params.t_step,toffset-settings_params.t_step,tonset+settings_params.win_size]);
 
                 axes(ax); xlim([tonset toffset]);
                 %cellfun(@delete,hs);
@@ -413,13 +545,13 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 drawnow;
                 axes(ax_temp); %hold off;
-                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
                 %plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
                 delete(h_line);
-                h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+                h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
-                setPosition(h_rect,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
             case 'a'
                 update_elements;
 %                 rectpos = getPosition(hs(1)); minx = rectpos(1);
@@ -435,7 +567,10 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 %         end
             case 'n'
                  save(fullfile(DIR,annotation_filename),'keys','elements');
+                 templates = params_handles.show_button.UserData;
                  save(fullfile(DIR,template_filename),'templates');
+                 settings_params.window_positions = [window_handles{1}.figure1.Position;get(window_handles{2},'Position');get(window_handles{3},'Position');get(window_handles{4},'Position')];
+                 %save(fullfile(settings_file_path,settings_file_name),'settings_params');
                  hgclose(hf);
                  hgclose(h_temp);
                  hgclose(h_map);     
@@ -455,17 +590,17 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         params_handles.file_name.String = filename;
                     end
                 end
-                [y,fs] = audioread(fullfile(DIR,filename));
+                [y,settings_params.FS] = audioread(fullfile(DIR,filename));
                 tmin = 0;
-                tmax = numel(y)/fs;
-                [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,fs);%,'reassigned');
+                tmax = numel(y)/settings_params.FS;
+                [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
                 if ~isempty(elements{file_loc_in_keys}.segType)
                     phrases = return_phrase_times(elements{file_loc_in_keys});
                 else
                     phrases = [];
                 end
                 % create map
-                h_map = figure('Position',window_positions(2,:)); 
+                h_map = figure('Position',settings_params.window_positions(2,:)); 
                 axes_map = axes;
                 plot_full_amplitude_envelope(axes_map);
                 set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
@@ -473,31 +608,31 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 xlim([tmin tmax]);
 
                 tonset = 0;
-                toffset = win_size;
-                h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<fmax & F>0,:)))))]);
+                toffset = settings_params.win_size;
+                h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
 
-                h_temp = figure('Position',window_positions(3,:)); 
+                h_temp = figure('Position',settings_params.window_positions(3,:)); 
                 ax_temp = axes;
-                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))));
+                %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
                 plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
-                if (tmpthr == 0)
-                    tmpthr = quantile(log(sum(abs(S(F<fmax & F>0,T >= tonset & T<=toffset)))),0.1);
+                if (settings_params.tmpthr == 0)
+                    settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
                 end
-                h_line = imline(ax_temp,[tonset tmpthr; toffset tmpthr]);
+                h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 pause;
                 thr = (ax_temp.Children(1).Children(1).YData + ax_temp.Children(1).Children(2).YData)/2;
-                tmpthr = thr;
+                settings_params.tmpthr = thr;
 
                     %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<fmax & F>0,:)))),T,thr,min_gap,min_syl);
+                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
                 % prepare mock syllables for auto positioning
-                mock_offs = off_times(off_times > on_times(1));
-                mock_ons = on_times(on_times < mock_offs(end));
-                mock_centers = (mock_offs+mock_ons)/2;
+                mock_ofsettings_params.FS = off_times(off_times > on_times(1));
+                mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
+                mock_centers = (mock_ofsettings_params.FS+mock_ons)/2;
                 %
 
-                hf=figure('Position',window_positions(4,:)); 
+                hf=figure('Position',settings_params.window_positions(4,:)); 
                 ax = axes;
                 draw_spec(ax);
 
@@ -507,7 +642,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 set(hf,'WindowbuttonDownFcn',@clickcallback)
                 set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
                 drawnow;
-                 
+                window_handles = {params_handles h_map h_temp hf};
+                params_handles.save_settings.UserData = {settings_params window_handles full_setting_path}; 
+                
             case 'd'
                 if (xpos > tonset & xpos < toffset)             
                   for syl_cnt = 1:numel(current_syllables) %start_syl:min(start_syl+numel(hs)-1,numel(syl_idx))
@@ -559,10 +696,10 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     colors = distinguishable_colors(n_syllables,'w');
                 end
                 current_label = syllables(params_handles.SylTags.Value);
-                mock_locs = find(mock_ons >= tonset & mock_offs <= toffset);
+                mock_locs = find(mock_ons >= tonset & mock_ofsettings_params.FS <= toffset);
                 for mock_cnt = 1:numel(mock_locs)
                     mock_loc = mock_locs(mock_cnt);
-                    newrect = [mock_ons(mock_loc) 0 (mock_offs(mock_loc)-mock_ons(mock_loc)) fmax];
+                    newrect = [mock_ons(mock_loc) 0 (mock_ofsettings_params.FS(mock_loc)-mock_ons(mock_loc)) settings_params.fmax];
                     add_syllable(newrect,current_label);
                     axes(ax);
                     %cellfun(@delete,hs);
@@ -580,12 +717,12 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     end
                     current_label = syllables(params_handles.SylTags.Value);
                     if (current_label == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)))
-                        time_stamps = [1:numel(y)]/fs -1/fs;
+                        time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
                         templates.wavs(params_handles.SylTags.Value).segType = current_label;
                         templates.wavs(params_handles.SylTags.Value).filename = keys{params_handles.file_list.Value};
                         templates.wavs(params_handles.SylTags.Value).startTime = elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt));
                         templates.wavs(params_handles.SylTags.Value).endTime = elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt));
-                        templates.wavs(params_handles.SylTags.Value).fs = fs;
+                        templates.wavs(params_handles.SylTags.Value).settings_params.FS = settings_params.FS;
                         templates.wavs(params_handles.SylTags.Value).wav = y(time_stamps >= templates.wavs(params_handles.SylTags.Value).startTime & ...
                             time_stamps <= templates.wavs(params_handles.SylTags.Value).endTime);
                         params_handles.show_button.UserData = templates;
@@ -629,27 +766,27 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
            if syl_idx(syl_num) == curr_active
                curr_active_handle = imrect(axes_handle,[elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) ...
                      0 elements{file_loc_in_keys}.segFileEndTimes(syl_idx(syl_num)) - ...
-                     elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) fmax]);
+                     elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) settings_params.fmax]);
                 result_hs ={result_hs{:} curr_active_handle};
                 textpos = getPosition(curr_active_handle);
-                h = text(axes_handle,textpos(1)+textpos(3)/2,text_height,num2str(elements{file_loc_in_keys}.segType(syl_idx(syl_num))),...
+                h = text(axes_handle,textpos(1)+textpos(3)/2,settings_params.text_height,num2str(elements{file_loc_in_keys}.segType(syl_idx(syl_num))),...
                     'Units','data','HorizontalAlignment','center','FontSize',24, ...
                     'Color', colors(find(syllables == elements{file_loc_in_keys}.segType(syl_idx(syl_num))),:));
                 set(curr_active_handle,'UserData', h);
-                id = addNewPositionCallback(result_hs{end},@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 text_height 0]));
+                id = addNewPositionCallback(result_hs{end},@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 settings_params.text_height 0]));
            else
                 h=rectangle(axes_handle,'Position',[elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) ...
                      0 elements{file_loc_in_keys}.segFileEndTimes(syl_idx(syl_num)) - ...
-                     elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) fmax],'LineWidth',2,...
+                     elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) settings_params.fmax],'LineWidth',2,...
                      'EdgeColor',colors(find(syllables == elements{file_loc_in_keys}.segType(syl_idx(syl_num))),:));
 
                 result_hs ={result_hs{:} h};
                 textpos = get(result_hs{end},'Position');
-                h = text(axes_handle,textpos(1)+textpos(3)/2,text_height,num2str(elements{file_loc_in_keys}.segType(syl_idx(syl_num))),...
+                h = text(axes_handle,textpos(1)+textpos(3)/2,settings_params.text_height,num2str(elements{file_loc_in_keys}.segType(syl_idx(syl_num))),...
                     'Units','data','HorizontalAlignment','center','FontSize',24, ...
                     'Color', colors(find(syllables == elements{file_loc_in_keys}.segType(syl_idx(syl_num))),:));
                 set(result_hs{end},'UserData', h);
-                %id = addNewPositionCallback(result_hs(end),@(pos)set(get(result_hs(end),'UserData'),'Position',[pos(1)+pos(3)/2 text_height 0]));
+                %id = addNewPositionCallback(result_hs(end),@(pos)set(get(result_hs(end),'UserData'),'Position',[pos(1)+pos(3)/2 settings_params.text_height 0]));
            end     
        end 
     end
@@ -735,12 +872,12 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 
     function time = getFileTime(filename)
         strparts = regexp(filename,'_', 'split');
-        y = str2double(strparts{3});
+        yr = str2double(strparts{3});
         m = str2double(strparts{4});
         d = str2double(strparts{5});
         th = str2double(strparts{6});
         tm = str2double(strparts{7});
-        time = datenum(y,m,d,th,tm,0);
+        time = datenum(yr,m,d,th,tm,0);
     end
 
     function pos = get_pos(syl_cnt_in_idx)
@@ -760,12 +897,13 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     end
 
     function plot_full_amplitude_envelope(target_axes_handle)
+        hold(target_axes_handle,'off')
         if isempty(phrases)
-            plot(target_axes_handle,T,log(sum(abs(S(F<fmax & F>0,:)))));
+            plot(target_axes_handle,T,log(sum(abs(S(F<settings_params.fmax & F>0,:)))));
         else
-            logS = log(sum(abs(S(F<fmax & F>0,:))));
+            logS = log(sum(abs(S(F<settings_params.fmax & F>0,:))));
             plot(target_axes_handle,T(T <= phrases.phraseFileStartTimes(1)),logS(T <= phrases.phraseFileStartTimes(1)),'Color',[0.5 0.5 0.5],'LineStyle',':');
-            hold on;
+            hold(target_axes_handle,'on')
             plot(target_axes_handle,T(T >= phrases.phraseFileEndTimes(end)),logS(T >= phrases.phraseFileEndTimes(end)),'Color',[0.5 0.5 0.5],'LineStyle',':');
             for phrasenum = 1:numel(phrases.phraseType)
                 plot(target_axes_handle,T(T >= phrases.phraseFileStartTimes(phrasenum) & T <= phrases.phraseFileEndTimes(phrasenum)), ...
@@ -777,7 +915,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         'Color',[0.5 0.5 0.5],'LineStyle',':');
                 end
             end
-            ylim([min(logS) max(logS)]);
+            ylim(target_axes_handle,[min(logS) max(logS)]);
         end
     end
 
