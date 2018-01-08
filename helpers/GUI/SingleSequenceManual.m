@@ -303,9 +303,21 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         xpos = mouse_loc(1,1); ypos = mouse_loc(1,2);
         disp([xpos ypos]);
         switch evt.Key
+            case 'q' %quit
+                button = questdlg(['Do you want to save before quitting?'],'Quitters never win. Winners never quit!','Yes','No','No');
+                if strcmp(button,'Yes')
+                    save(fullfile(DIR,annotation_filename),'keys','elements');
+                    templates = params_handles.show_button.UserData;
+                    save(fullfile(DIR,template_filename),'templates');
+                    hgclose(hf);
+                    hgclose(h_temp);
+                    hgclose(h_map);  
+                    hgclose(params_handles);
+                end
+                
             case 'e'
                 current_entry = file_loc_in_keys;
-                button = questdlg(['Are you sue that you want to exclude ' keys{current_entry}],'Deleting? Are you mad?','Yes','No','No');
+                button = questdlg(['Are you sure that you want to exclude ' keys{current_entry}],'Deleting? Are you mad?','Yes','No','No');
                 if strcmp(button,'Yes')
                     keys(current_entry) = [];
                     elements(current_entry) = [];
@@ -716,16 +728,21 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         colors = distinguishable_colors(n_syllables,'w');
                     end
                     current_label = syllables(params_handles.SylTags.Value);
-                    if (current_label == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)))
-                        time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
-                        templates.wavs(params_handles.SylTags.Value).segType = current_label;
-                        templates.wavs(params_handles.SylTags.Value).filename = keys{params_handles.file_list.Value};
-                        templates.wavs(params_handles.SylTags.Value).startTime = elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt));
-                        templates.wavs(params_handles.SylTags.Value).endTime = elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt));
-                        templates.wavs(params_handles.SylTags.Value).settings_params.FS = settings_params.FS;
-                        templates.wavs(params_handles.SylTags.Value).wav = y(time_stamps >= templates.wavs(params_handles.SylTags.Value).startTime & ...
-                            time_stamps <= templates.wavs(params_handles.SylTags.Value).endTime);
-                        params_handles.show_button.UserData = templates;
+                    button = questdlg(['Do you want to update the template for syllable #' num2str(current_label) ' ?'],'LABELING','Yes','No','No');
+                    if strcmp(button,'Yes')
+                        if (current_label == elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)))
+                            time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
+                            templates.wavs(params_handles.SylTags.Value).segType = current_label;
+                            templates.wavs(params_handles.SylTags.Value).filename = keys{params_handles.file_list.Value};
+                            templates.wavs(params_handles.SylTags.Value).startTime = elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt));
+                            templates.wavs(params_handles.SylTags.Value).endTime = elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt));
+                            templates.wavs(params_handles.SylTags.Value).fs = settings_params.FS;
+                            templates.wavs(params_handles.SylTags.Value).wav = y(time_stamps >= templates.wavs(params_handles.SylTags.Value).startTime & ...
+                                time_stamps <= templates.wavs(params_handles.SylTags.Value).endTime);
+                            params_handles.show_button.UserData = templates;
+                        else
+                            msgbox('The spectrogram segment must have the same label as the tagging dialog box!');
+                        end
                     end
                         
                 end
@@ -898,10 +915,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 
     function plot_full_amplitude_envelope(target_axes_handle)
         hold(target_axes_handle,'off')
+        logS = log(sum(abs(S(F<settings_params.fmax & F>0,:))));
         if isempty(phrases)
-            plot(target_axes_handle,T,log(sum(abs(S(F<settings_params.fmax & F>0,:)))));
+            plot(target_axes_handle,T,logS);
         else
-            logS = log(sum(abs(S(F<settings_params.fmax & F>0,:))));
+            
             plot(target_axes_handle,T(T <= phrases.phraseFileStartTimes(1)),logS(T <= phrases.phraseFileStartTimes(1)),'Color',[0.5 0.5 0.5],'LineStyle',':');
             hold(target_axes_handle,'on')
             plot(target_axes_handle,T(T >= phrases.phraseFileEndTimes(end)),logS(T >= phrases.phraseFileEndTimes(end)),'Color',[0.5 0.5 0.5],'LineStyle',':');
@@ -915,8 +933,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         'Color',[0.5 0.5 0.5],'LineStyle',':');
                 end
             end
-            ylim(target_axes_handle,[min(logS) max(logS)]);
+            
         end
+        ylim(target_axes_handle,[min(logS) max(logS)]);
     end
 
 end
