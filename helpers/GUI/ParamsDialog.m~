@@ -22,7 +22,7 @@ function varargout = ParamsDialog(varargin)
 
 % Edit the above text to modify the response to help ParamsDialog
 
-% Last Modified by GUIDE v2.5 09-Jan-2018 12:27:27
+% Last Modified by GUIDE v2.5 09-Jan-2018 17:21:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -269,7 +269,17 @@ function file_list_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns file_list contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from file_list
-
+pre = '<HTML><FONT color="'; post = '</FONT></HTML>';
+elements = handles.file_list.UserData;
+taglist = cellfun(@str2num,handles.SylTags.String);
+colors = distinguishable_colors(numel(taglist),'w');
+current_tags = unique(elements{handles.file_list.Value}.segType);
+tagtext = {};
+for tagnum = 1:numel(current_tags)
+    tagtext{tagnum} = [pre rgb2hex(255*colors(find(taglist == current_tags(tagnum)),:)) ...
+        '">' num2str(current_tags(tagnum)) post]; 
+end
+handles.existing_labels.String = tagtext;
 
 % --- Executes during object creation, after setting all properties.
 function file_list_CreateFcn(hObject, eventdata, handles)
@@ -298,7 +308,8 @@ fbins = 257;
 sig = templates.wavs(sylnum).wav;        
 [S,F,T,P] = spectrogram((sig/(sqrt(mean(sig.^2)))),220,220-44,512,FS,'reassigned');
 sig_len = size(S,2);
-figure; imagesc(T,F,abs(S)); colormap(1-gray); set(gca,'Ydir','normal'); ylim([fmin fmax]); caxis([str2num(handles.caxis_min.String) str2num(handles.caxis_max.String)]); set(gca,'FontSize',16); title(['Syllable ' num2str(templates.wavs(sylnum).segType)]);
+figure; imagesc(T,F,abs(S)); colormap(1-gray); set(gca,'Ydir','normal'); ylim([fmin fmax]); caxis([str2num(handles.caxis_min.String) str2num(handles.caxis_max.String)]); set(gca,'FontSize',16); 
+title(['Syllable ' num2str(templates.wavs(sylnum).segType) , ', file: ' templates.wavs(sylnum).filename],'interpreter','none');
 xticks([T(1) T(end)]-T(1)); xlabel('Time(sec)'); ylabel('Frequency(Hz)');
 
 % --- Executes on button press in save_settings.
@@ -324,6 +335,17 @@ function file_list_KeyPressFcn(hObject, eventdata, handles)
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
+pre = '<HTML><FONT color="'; post = '</FONT></HTML>';
+elements = handles.file_list.UserData;
+taglist = cellfun(@str2num,handles.SylTags.String);
+colors = distinguishable_colors(numel(taglist),'w');
+current_tags = unique(elements{handles.file_list.Value}.segType);
+tagtext = {};
+for tagnum = 1:numel(current_tags)
+    tagtext{tagnum} = [pre rgb2hex(255*colors(find(taglist == current_tags(tagnum)),:)) ...
+        '">' num2str(current_tags(tagnum)) post]; 
+end
+handles.existing_labels.String = tagtext;
 
 
 % --- Executes on selection change in existing_labels.
@@ -348,5 +370,45 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function update_existing_labels
         
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over file_list.
+function file_list_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to file_list (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+pre = '<HTML><FONT color="'; post = '</FONT></HTML>';
+elements = handles.file_list.UserData;
+taglist = cellfun(@str2num,handles.SylTags.String);
+colors = distinguishable_colors(numel(taglist),'w');
+current_tags = unique(elements{handles.file_list.Value}.segType);
+tagtext = {};
+for tagnum = 1:numel(current_tags)
+    tagtext{tagnum} = [pre rgb2hex(255*colors(find(taglist == current_tags(tagnum)),:)) ...
+        '">' num2str(current_tags(tagnum)) post]; 
+end
+handles.existing_labels.String = tagtext;
+
+
+% --- Executes on button press in help_button.
+function help_button_Callback(hObject, eventdata, handles)
+% hObject    handle to help_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+message = sprintf(['This GUI is operated by keyboard shortcuts. All shortcuts are executed as callbacks of the spectrogram window so if something doesn''t work it may be because the key was pressed while another window was selected\n' ...
+    '\nWhen the GUI starts or when a new file is processed the spectrogram window is absent. Set the threshold in the amplitude window and press ENTER\n' ...
+    '\nKeyboard Commands:\n' ...
+    'z,x - scroll left or right' ...
+    '\nu - update parameters if they were changed in the parameters window. Update threshold or time window if they were changed, recalculate threshold boundaries (green and red lines)' ...
+    '\ne - erase file entry (not the file). Currently this is irreversible and a prompt will pop up' ...
+    '\nr - update colors in threshold and time window panels' ...
+    '\nt - apply tag to selected syllable .. as chosen in the parameters window' ...
+    '\p - play current segment' ...
+    '\s - select segment on the spectrogram window in which all syllables will receive the selected label' ...
+    '\nd - delete selected syllable' ...
+    '\nf - select a segment in the spectrogram to focus on' ...
+    '\ng - move all visible syllable edges to nearest threshold crossing (same as double clicking all syllables) if no overlaps occur' ...
+    '\nj - Line4');
+msgbox(message,'HELP')
