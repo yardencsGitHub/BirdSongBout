@@ -16,7 +16,7 @@ function [resmat, state_count, state_labels] = create_first_order_transition_mat
 %   to j.
 %   state_count - # of times each label is encountered.
 %   state_labels - the lables of the matrix
-MaxSep = 0.25; % maximal phrase separation within a bout (sec)
+MaxSep = 0.5; % maximal phrase separation within a bout (sec)
 
 if ~exist(path_to_annotation_file)
     resmat = [];
@@ -59,7 +59,7 @@ end
 for i = 1:numel(join_entries)
     syllables = setdiff(syllables,join_entries{i}(2:end));
 end
-syllables = [-1000 syllables -2000];
+syllables = [-1000 syllables 1000];
 num_syllables = numel(syllables);
 resmat = zeros(num_syllables);
 for fnum = 1:numel(keys)
@@ -80,17 +80,20 @@ for fnum = 1:numel(keys)
     
     try
         phrases = return_phrase_times(element);
-        phrases.phraseType = [-1000; phrases.phraseType; -2000];
-        phrases.phraseFileStartTimes = [-1; phrases.phraseFileStartTimes; phrases.phraseFileEndTimes(end) + 0.001];
-        phrases.phraseFileEndTimes = [-0.001; phrases.phraseFileEndTimes; phrases.phraseFileEndTimes(end) + 1];
+        phrases = deal_with_time_gaps(phrases,MaxSep);
+        %phrases.phraseType = [-1000; phrases.phraseType; -2000];
+        %phrases.phraseFileStartTimes = [-1; phrases.phraseFileStartTimes; phrases.phraseFileEndTimes(end) + 0.001];
+        %phrases.phraseFileEndTimes = [-0.001; phrases.phraseFileEndTimes; phrases.phraseFileEndTimes(end) + 1];
         for phrasenum = 1:numel(phrases.phraseType)-1
-            if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
             resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) = ...
                 resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) + 1;
-            else
-                resmat(syllables == phrases.phraseType(phrasenum),syllables == -2000) = ...
-                resmat(syllables == phrases.phraseType(phrasenum),syllables == -2000) + 1;
-            end
+%             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
+%             resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) = ...
+%                 resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) + 1;
+%             else
+%                 resmat(syllables == phrases.phraseType(phrasenum),syllables == -2000) = ...
+%                 resmat(syllables == phrases.phraseType(phrasenum),syllables == -2000) + 1;
+%             end
         end
     catch em
         '8'
