@@ -58,6 +58,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         filename = keys{1};
         params_handles.file_name.String = filename;
         params_handles.file_list.String = keys;
+        params_handles.file_list.UserData = elements;
         ord = [];
         dates = [];
         times = [];
@@ -91,18 +92,18 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         
         %unique_dates = datestr(setdiff(unique(datenum(dates)),[736804]),'yyyy_mm_dd'); %does not include 04/19-21th (remove for other birds)
     else
-        bird_exper_name = input('Type bird name: ');
+        bird_exper_name = input('Type bird name: ','s');
         [y,fs] = audioread(wav_files(1).name);
         exper = struct('birdname',bird_exper_name,'expername','Recording from Canary',...
             'desiredInSampRate',fs,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
         
         [keys, elements, templates] = create_empty_elements(DIR,bird_exper_name,exper);
-        annotation_filename = input('Type ANNOTATION file name: ');
+        annotation_filename = input('Type ANNOTATION file name: ','s');
         if ~strcmp(annotation_filename(end-3:end),'.mat')
             annotation_filename = [annotation_filename '.mat'];
         end
         save(fullfile(DIR,annotation_filename),'keys','elements');
-        template_filename = input('Type TEMPLATE file name: ');
+        template_filename = input('Type TEMPLATE file name: ','s');
         if ~strcmp(template_filename(end-3:end),'.mat')
             template_filename = [template_filename '.mat'];
         end
@@ -303,19 +304,38 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         xpos = mouse_loc(1,1); ypos = mouse_loc(1,2);
         disp([xpos ypos]);
         switch evt.Key
+            case 's'
+                range_rect = getrect(ax); 
+                tstart = range_rect(1);
+                tend = range_rect(1)+range_rect(3);
+                taglist = cellfun(@str2num,params_handles.SylTags.String);
+                if numel(taglist ~= numel(syllables))
+                    syllables = taglist;
+                    n_syllables = numel(syllables);
+                    colors = distinguishable_colors(n_syllables,'w');
+                end
+                current_label = syllables(params_handles.SylTags.Value);
+                to_change = find(elements{file_loc_in_keys}.segFileStartTimes(current_syllables) >= tstart & ...
+                    elements{file_loc_in_keys}.segFileEndTimes(current_syllables) <= tend);
+                elements{file_loc_in_keys}.segType(current_syllables(to_change)) = current_label;
+              
+                remove_syllables;
+                [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+                params_handles.file_list.UserData = elements;
             case 'q' %quit
                 button = questdlg(['Do you want to save before quitting?'],'Quitters never win. Winners never quit!','Yes','No','No');
                 if strcmp(button,'Yes')
                     save(fullfile(DIR,annotation_filename),'keys','elements');
                     templates = params_handles.show_button.UserData;
                     save(fullfile(DIR,template_filename),'templates');
-                    hgclose(hf);
-                    hgclose(h_temp);
-                    hgclose(h_map);  
-                    hgclose(params_handles);
-                end
+                 end
+                hgclose(hf);
+                hgclose(h_temp);
+                hgclose(h_map);  
+                close(h_params);
                 
-            case 'e'
+                
+            case 'e' %delete entry from keys
                 current_entry = file_loc_in_keys;
                 button = questdlg(['Are you sure that you want to exclude ' keys{current_entry}],'Deleting? Are you mad?','Yes','No','No');
                 if strcmp(button,'Yes')
@@ -395,8 +415,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     drawnow;
                     window_handles = {params_handles h_map h_temp hf};
                     params_handles.save_settings.UserData = {settings_params window_handles full_setting_path}; 
+                    params_handles.file_list.UserData = elements;
                 end
-            case 'r'
+            case 'r' %update map colors
                 phrases = return_phrase_times(elements{file_loc_in_keys});
                 plot_full_amplitude_envelope(axes_map);
                 set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
@@ -408,7 +429,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 plot_full_amplitude_envelope(ax_temp);
                 xlim(ax_temp,[tonset toffset]);
                 h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
-            case 'f'
+            case 'f' % zoom
                 range_rect = getrect(ax); 
                 tonset = range_rect(1);
                 toffset = range_rect(1)+range_rect(3);
@@ -426,11 +447,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
                 
-            case 'p'
+            case 'p' %play sound
                time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
                soundsc(y(time_stamps >= tonset & time_stamps <= toffset),settings_params.FS);
                
-            case 'g'
+            case 'g' %update borders to threshold crossings
                 for syl_cnt = 1:numel(current_syllables) 
                         currpos = get_pos(syl_cnt);    
                                                  
@@ -447,7 +468,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         
                  end
                       update_elements;
-            case 'u'
+            case 'u' % update parameters and borders
                 settings_params.min_gap = str2num(params_handles.MinGap.String);
                 settings_params.min_syl = str2num(params_handles.MinSyl.String);
                 settings_params.t_step = str2num(params_handles.StepSize.String);
@@ -523,6 +544,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 axes(ax);
                 
                 params_handles.save_settings.UserData = {settings_params window_handles full_setting_path};
+                params_handles.file_list.UserData = elements;
             case 'x'
                 update_elements;
                 toffset = min(tmax,toffset+settings_params.t_step); tonset = min([tonset+settings_params.t_step,tmax-settings_params.t_step,toffset-settings_params.win_size]); 
@@ -656,8 +678,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 drawnow;
                 window_handles = {params_handles h_map h_temp hf};
                 params_handles.save_settings.UserData = {settings_params window_handles full_setting_path}; 
-                
-            case 'd'
+                params_handles.file_list.UserData = elements;
+            case 'd' %delete syllable
                 if (xpos > tonset & xpos < toffset)             
                   for syl_cnt = 1:numel(current_syllables) %start_syl:min(start_syl+numel(hs)-1,numel(syl_idx))
                     %syl_cnt = syl_num - start_syl+1;
@@ -684,6 +706,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                         break;
                     end
                   end
+                  params_handles.file_list.UserData = elements;
                 end
             case 't' %tag
                 if ismember(curr_active,current_syllables)
@@ -699,6 +722,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     %cellfun(@delete,hs);
                     remove_syllables;
                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+                    params_handles.file_list.UserData = elements;
                 end
             case 'b' % create threshold base boundaries
                 taglist = cellfun(@str2num,params_handles.SylTags.String);
@@ -718,6 +742,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     remove_syllables;
                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
                 end
+                params_handles.file_list.UserData = elements;
             case 'l'         
                 if ismember(curr_active,current_syllables)
                     syl_cnt = find(current_syllables == curr_active);
@@ -769,6 +794,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     %cellfun(@delete,hs);
                     remove_syllables;
                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+                    params_handles.file_list.UserData = elements;
                 end
         end
     end
@@ -817,6 +843,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
             elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_num)) = minx;
             elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_num)) = maxx;
         end
+        params_handles.file_list.UserData = elements;
     end
 
     function add_syllable(rect,syl_id)
@@ -874,7 +901,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                
                 %set(hf,'WindowbuttonDownFcn',@clickcallback)
                 %set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
-
+                params_handles.file_list.UserData = elements;
             end
         end
     end
@@ -937,5 +964,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         end
         ylim(target_axes_handle,[min(logS) max(logS)]);
     end
+
+    
 
 end
