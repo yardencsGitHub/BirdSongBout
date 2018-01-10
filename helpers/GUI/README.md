@@ -11,5 +11,24 @@ Three panels open after running the GUI or after changing the WAV file (see belo
 ![MapImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/MapFig.png)
 ### Amplitude threshold 
 ![ThrImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/ThrFig.png)
-
+Set the threshold by dragging the line up and down and then press ENTER. A new panel will appear:
+### The spectrogram window
 ![SpecImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/SpecFig.png)
+This panel is the main focus in working on each file and all keyboard hotkeys, listed below, function only when this panel is selected.
+Importantly, changes to settings in other windows will only take an effect when updating the main (spectrogram) panel (by selecting it and pressing 'u', see below)
+### Hotkeys
+* u
+* z,x
+* e
+* r
+* t
+* p
+* s
+* d
+* f
+* g
+* j
+* b
+* n
+* q
+
