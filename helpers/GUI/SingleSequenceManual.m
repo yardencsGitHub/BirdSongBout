@@ -19,8 +19,10 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         settings_params.min_gap = 0.005;
         settings_params.min_syl = 0.005;
         settings_params.map_caxis = [0 20];
+        settings_params.fmin = 300;  
         save(fullfile(settings_file_path,settings_file_name),'settings_params');
     end
+    
     h_params = ParamsDialog('Position',settings_params.window_positions(1,:));
     params_handles = get(h_params,'UserData');
     params_handles.MinGap.String = num2str(settings_params.min_gap);
@@ -149,10 +151,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     h_map = figure('Position',settings_params.window_positions(2,:)); 
     axes_map = axes;
     plot_full_amplitude_envelope(axes_map);
-    set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
+    set(axes_map,'Position',[0.01 0.15 0.98 0.8]); 
     set(axes_map,'YTick',[]);
     xlim([tmin tmax]);
-    
+    set(axes_map,'FontSize',14);
+    xlabel(axes_map,'Time (sec)');
     
     tonset = 0;
     toffset = settings_params.win_size;
@@ -162,6 +165,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
     plot_full_amplitude_envelope(ax_temp);
     xlim([tonset toffset]);
+    set(ax_temp,'YTick',[]);
+    set(ax_temp,'FontSize',14);
+    xlabel(ax_temp,'Time (sec)');
     if (settings_params.tmpthr == 0)
         settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
     end
@@ -181,8 +187,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     hf=figure('Position',settings_params.window_positions(4,:));
     ax = axes;
     draw_spec(ax);
-    
-    
+    set(ax,'FontSize',14);
+    xlabel(ax,'Time (sec)');
+    ylabel(ax,'Frequency (Hz)');
     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
     
     set(hf,'WindowbuttonDownFcn',@clickcallback)
@@ -203,6 +210,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
             delete(rd_lines(i));
         end
         [gr_lines rd_lines] = draw_lines(axes_handle);
+        ylim([settings_params.fmin settings_params.fmax]);
     end
 
     function [gr_lines rd_lines] = draw_lines(axes_handle)
@@ -374,9 +382,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     h_map = figure('Position',settings_params.window_positions(2,:)); 
                     axes_map = axes;
                     plot_full_amplitude_envelope(axes_map);
-                    set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
+                    set(axes_map,'Position',[0.01 0.15 0.98 0.8]); 
                     set(axes_map,'YTick',[]);
                     xlim([tmin tmax]);
+                    set(axes_map,'FontSize',14);
+                    xlabel(axes_map,'Time (sec)');
 
                     tonset = 0;
                     toffset = settings_params.win_size;
@@ -387,6 +397,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
                     plot_full_amplitude_envelope(ax_temp);
                     xlim([tonset toffset]);
+                    set(ax_temp,'YTick',[]);
+                    set(ax_temp,'FontSize',14);
+                    xlabel(ax_temp,'Time (sec)');
                     if (settings_params.tmpthr == 0)
                         settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
                     end
@@ -406,7 +419,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     hf=figure('Position',settings_params.window_positions(4,:)); 
                     ax = axes;
                     draw_spec(ax);
-
+                    set(ax,'FontSize',14);
+                    xlabel(ax,'Time (sec)');
+                    ylabel(ax,'Frequency (Hz)');
 
                     [hs, current_syllables] = display_rects(ax,[tonset toffset]);
 
@@ -420,7 +435,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
             case 'r' %update map colors
                 phrases = return_phrase_times(elements{file_loc_in_keys});
                 plot_full_amplitude_envelope(axes_map);
-                set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
+                set(axes_map,'Position',[0.01 0.15 0.98 0.8]); 
                 set(axes_map,'YTick',[]);
                 tmin = 0;
                 tmax = numel(y)/settings_params.FS;
@@ -637,9 +652,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 h_map = figure('Position',settings_params.window_positions(2,:)); 
                 axes_map = axes;
                 plot_full_amplitude_envelope(axes_map);
-                set(axes_map,'Position',[[0.01 0.1 0.98 0.85]]); 
+                set(axes_map,'Position',[0.01 0.15 0.98 0.8]); 
                 set(axes_map,'YTick',[]);
                 xlim([tmin tmax]);
+                set(axes_map,'FontSize',14);
+                xlabel(axes_map,'Time (sec)');
 
                 tonset = 0;
                 toffset = settings_params.win_size;
@@ -650,6 +667,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
                 plot_full_amplitude_envelope(ax_temp);
                 xlim([tonset toffset]);
+                set(ax_temp,'YTick',[]);
+                set(ax_temp,'FontSize',14);
+                xlabel(ax_temp,'Time (sec)');
                 if (settings_params.tmpthr == 0)
                     settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
                 end
@@ -669,7 +689,9 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 hf=figure('Position',settings_params.window_positions(4,:)); 
                 ax = axes;
                 draw_spec(ax);
-
+                set(ax,'FontSize',14);
+                xlabel(ax,'Time (sec)');
+                ylabel(ax,'Frequency (Hz)');
 
                 [hs, current_syllables] = display_rects(ax,[tonset toffset]);
 
@@ -808,7 +830,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
        for syl_num = 1:numel(syl_idx)
            if syl_idx(syl_num) == curr_active
                curr_active_handle = imrect(axes_handle,[elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) ...
-                     0 elements{file_loc_in_keys}.segFileEndTimes(syl_idx(syl_num)) - ...
+                     settings_params.fmin elements{file_loc_in_keys}.segFileEndTimes(syl_idx(syl_num)) - ...
                      elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) settings_params.fmax]);
                 result_hs ={result_hs{:} curr_active_handle};
                 textpos = getPosition(curr_active_handle);
@@ -819,7 +841,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 id = addNewPositionCallback(result_hs{end},@(pos)set(get(curr_active_handle,'UserData'),'Position',[pos(1)+pos(3)/2 settings_params.text_height 0]));
            else
                 h=rectangle(axes_handle,'Position',[elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) ...
-                     0 elements{file_loc_in_keys}.segFileEndTimes(syl_idx(syl_num)) - ...
+                     settings_params.fmin elements{file_loc_in_keys}.segFileEndTimes(syl_idx(syl_num)) - ...
                      elements{file_loc_in_keys}.segFileStartTimes(syl_idx(syl_num)) settings_params.fmax],'LineWidth',2,...
                      'EdgeColor',colors(find(syllables == elements{file_loc_in_keys}.segType(syl_idx(syl_num))),:));
 

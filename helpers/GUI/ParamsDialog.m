@@ -171,7 +171,7 @@ function AddTag_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 taglist = cellfun(@str2num,handles.SylTags.String);
-newtag = str2num(handles.NewTag.String{:});
+newtag = str2num(handles.NewTag.String);
 if ~ismember(newtag,taglist)
     if ismember(-1,taglist)      
         handles.SylTags.String(numel(handles.SylTags.String)) = {num2str(newtag)};
@@ -300,6 +300,8 @@ function show_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 fmin = 300; fmax = 8000;
+fmin = handles.save_settings.UserData.fmin;
+fmax = handles.save_settings.UserData.fmax;
 templates = handles.show_button.UserData;
 sylnum = handles.SylTags.Value;
 dt = 0.9167*0.001;
