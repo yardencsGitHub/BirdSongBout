@@ -1,2 +1,2 @@
 # A GUI for manual sound annotation and segmentation
-![alt text](https://github.com/yardencsGitHub/)
+![SpecImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/SpecFig.png)
