@@ -2,6 +2,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
     settings_file_name = 'BoutAnnotation_settings_file.mat';
     full_setting_path = fullfile(settings_file_path,settings_file_name);
+    cd (DIR);
+    wav_files = dir('*.wav');
     if exist(fullfile(settings_file_path,settings_file_name))
         load(fullfile(settings_file_path,settings_file_name),'settings_params')
     else
@@ -13,12 +15,12 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         settings_params.win_size = 1;
         max_settings_params.win_size = 3;
         settings_params.t_step = 0.5;
-        settings_params.FS = 48000;
+        [~,settings_params.FS] = audioread(wav_files(1).name);
         settings_params.fmax = 8000;
         settings_params.text_height = 8250;
         settings_params.min_gap = 0.005;
         settings_params.min_syl = 0.005;
-        settings_params.map_caxis = [0 20];
+        settings_params.map_caxis = [0 10];
         settings_params.fmin = 300;  
         save(fullfile(settings_file_path,settings_file_name),'settings_params');
     end
@@ -33,8 +35,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     params_handles.dir_name.String = DIR;
     
     %%
-    cd (DIR);
-    wav_files = dir('*.wav');
+    
     
     if exist(template_filename)
         load(template_filename,'templates');
