@@ -14,7 +14,8 @@ function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,i
 %   DATA - a cell array of strings
 AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-MaxSep = 2; % maximal phrase separation within a bout (sec)
+
+MaxSep = 0.5; % maximal phrase separation within a bout (sec)
 
 if ~exist(path_to_annotation_file)
     DATA = [];
