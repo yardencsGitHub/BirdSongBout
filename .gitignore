@@ -1,8 +1,14 @@
 
 *.m~
 
+<<<<<<< HEAD
 helpers/GUI/BoutAnnotation_settings_file.mat
 
 helpers/GUI/BoutAnnotation_settings_file.mat
 
 helpers/GUI/BoutAnnotation_settings_file.mat
+=======
+BoutAnnotation_settings_file.mat
+>>>>>>> origin/master
+
+*.m~
