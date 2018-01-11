@@ -30,7 +30,23 @@ Importantly, changes to settings in other windows will only take an effect when 
 * **g** - Move all segment bounaries to the nearest threshold crossing. This command is processed from left (earlier) to right (later) in the Spectrogram panel. Boundaries will not move if overlaps occur or if the threshold crossings are outside the visible time range.
 * **j** - Join - The currently chosen segment, if visible, is joined with the next. The tag of the currently chosen segment is applied to the joined segment.
 * **b** - Create new segments. The segments will be created, left to right, at the threshold crossing boundaries in the visible time window. The new segments will get the label that is chosen in the settings window.
+* **l** - Label - This updates the sample of the currently chosen tag. The currently chosen segment will be saved in the templates file only if it has the same tag as the currently chosen tag in the settings panel.
 * **n** - New entry - Changes will be saved and either the next entry will be opened or the entry, chosen in the settings panel.
 * **q** - Quit - A Yes / No prompt allows choosing to save entries and settings before closing all windows.
-
+### Mouse operations
+Some operations are done with the mouse:
+* **Selecting a segment** - Clicking on a segment in the spectrogram panel will *Select* it. The rectangle that marks the segment will change to an active rectangle.
+* **Changing segment boundaries** - When a segment is selected, the entire segment and its boundaries can be dragged. This allows small corrections. **WARNING!** This also allows dragging the segment to an illegal position (e.g. make it overlap with other segments). This may be fixed in the future.
+* **Set segment boundaries to nearest threshold crossings** - Double-Click a segment to do that.
+* **Change threshold and time range** - The threshold line (in the Treshold panel) and the time window (in its panel) can be dragged and reshaped with the mouse. These changes will take an effect after updating the main (Spectrogram) window (by pressing 'u')
+### Settings
+The following can be done in the Settings and parameters panel:
+* **Select an entry** - Selecting an entry in the in the left box will show the tags that exist in that entry as colored numbers in the neighboring box.
+* **Select a tag** - Picking a tag in the 'Tags' box will allow applying it in the Spectrogram.
+* **The Delete! button** - *Under construction* - This will allow deleting a tag and changing all its occurances to '-1'.
+* **The Show button** - This shows the saved sample of the currently chosen tag. The figure is **not** scaled.
+* **The Add: button** - This will create a new tag. The tags **must** be numbers. Enter a number in the space next to the button before pressing it.
+* **save settings** - This saves the settings file.
+* **Parameters:**
+  * a
 
