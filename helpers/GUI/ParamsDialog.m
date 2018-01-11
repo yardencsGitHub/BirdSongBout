@@ -22,7 +22,7 @@ function varargout = ParamsDialog(varargin)
 
 % Edit the above text to modify the response to help ParamsDialog
 
-% Last Modified by GUIDE v2.5 09-Jan-2018 17:21:34
+% Last Modified by GUIDE v2.5 11-Jan-2018 08:24:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -300,8 +300,8 @@ function show_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 fmin = 300; fmax = 8000;
-fmin = handles.save_settings.UserData.fmin;
-fmax = handles.save_settings.UserData.fmax;
+fmin = handles.save_settings.UserData{1}.fmin;
+fmax = handles.save_settings.UserData{1}.fmax;
 templates = handles.show_button.UserData;
 sylnum = handles.SylTags.Value;
 dt = 0.9167*0.001;
@@ -417,3 +417,10 @@ message = sprintf(['This GUI is operated by keyboard shortcuts. All shortcuts ar
     '\nn - save and open the next file entry (or the selected entry if it''s not the next in the list)' ...
     '\nq - quit']);
 msgbox(message,'HELP')
+
+
+% --- Executes on button press in delete_tag_button.
+function delete_tag_button_Callback(hObject, eventdata, handles)
+% hObject    handle to delete_tag_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
