@@ -46,7 +46,9 @@ The following can be done in the Settings and parameters panel:
 * **The Delete! button** - *Under construction* - This will allow deleting a tag and changing all its occurances to '-1'.
 * **The Show button** - This shows the saved sample of the currently chosen tag. The figure is **not** scaled.
 * **The Add: button** - This will create a new tag. The tags **must** be numbers. Enter a number in the space next to the button before pressing it.
-* **save settings** - This saves the settings file.
+* **save settings** - This saves the settings file. This file, and the locations of the windows, are also saved when switching entries.
 * **Parameters:**
-  * a
+  * Step - The time jump in pressing 'z' or 'x' in the Spectrogram windows
+  * Min Gap, Min Syl - These set the minimal gap between syllables and the minimal syllable durations. These parameters affect the threshold crossing boundaries and will update upter pressing 'u' in the Spectrogram panel.
+  * CAXIS - sets the color axis in the spectrogram window. Updates after pressing 'u'.
 
