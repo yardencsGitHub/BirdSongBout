@@ -279,6 +279,7 @@ for tagnum = 1:numel(current_tags)
     tagtext{tagnum} = [pre rgb2hex(255*colors(find(taglist == current_tags(tagnum)),:)) ...
         '">' num2str(current_tags(tagnum)) post]; 
 end
+handles.existing_labels.Value = 1;
 handles.existing_labels.String = tagtext;
 
 % --- Executes during object creation, after setting all properties.
