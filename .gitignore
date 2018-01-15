@@ -12,3 +12,9 @@ BoutAnnotation_settings_file.mat
 >>>>>>> origin/master
 
 *.m~
+
+*.m~
+
+CanaryBoutPipeLine.m~
+
+helpers/GUI/ParamsDialog.m~
