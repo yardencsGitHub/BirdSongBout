@@ -79,19 +79,19 @@ for fnum = 1:numel(keys)
     try
         phrases = return_phrase_times(element);
         
-        currDATA = ['' AlphaNumeric(syllables == phrases.phraseType(1))];
+        currDATA = AlphaNumeric(syllables == phrases.phraseType(1));
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
             else
                 if (numel(currDATA) > min_phrases)
-                    DATA = {DATA{:} [currDATA '']};
+                    DATA = {DATA{:} currDATA};
                 end
-                currDATA = ['' AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                currDATA = AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1));
            
             end
             if (numel(currDATA) > min_phrases)
-                DATA = {DATA{:} [currDATA '']};
+                DATA = {DATA{:} currDATA};
             end
         end
     catch em

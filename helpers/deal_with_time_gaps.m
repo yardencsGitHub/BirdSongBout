@@ -12,7 +12,7 @@ function new_phrases = deal_with_time_gaps(phrases,max_phrase_gap)
     for temp_cnt = 2:numel(phrases.phraseType)
         curr_gap = (phrases.phraseFileStartTimes(temp_cnt) - phrases.phraseFileEndTimes(temp_cnt-1));
         if (curr_gap > max_phrase_gap) 
-            new_phrases.phraseType = [new_phrases.phraseType; -1000; 1000];
+            new_phrases.phraseType = [new_phrases.phraseType; 1000; -1000];
             new_phrases.phraseFileStartTimes = [new_phrases.phraseFileStartTimes phrases.phraseFileEndTimes(temp_cnt - 1)+0.001 ...
                 phrases.phraseFileStartTimes(temp_cnt) - min(0.005,curr_gap/10)];
             new_phrases.phraseFileEndTimes = [new_phrases.phraseFileEndTimes phrases.phraseFileEndTimes(temp_cnt - 1)+min(0.005,curr_gap/10) ...
