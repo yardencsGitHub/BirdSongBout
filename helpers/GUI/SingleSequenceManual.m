@@ -307,11 +307,11 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 
     function keystroke(h_obj,evt)
         
-        disp(evt.Key);
+%         disp(evt.Key);
         hd = get(h_obj,'Children');
         mouse_loc = get(hd(end),'CurrentPoint');
         xpos = mouse_loc(1,1); ypos = mouse_loc(1,2);
-        disp([xpos ypos]);
+%         disp([xpos ypos]);
         switch evt.Key
             case 's'
                 range_rect = getrect(ax); 
@@ -703,34 +703,53 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 params_handles.save_settings.UserData = {settings_params window_handles full_setting_path}; 
                 params_handles.file_list.UserData = elements;
             case 'd' %delete syllable
-                if (xpos > tonset & xpos < toffset)             
-                  for syl_cnt = 1:numel(current_syllables) %start_syl:min(start_syl+numel(hs)-1,numel(syl_idx))
-                    %syl_cnt = syl_num - start_syl+1;
-                    rectpos = get_pos(syl_cnt);
-                    maxx = rectpos(1)+rectpos(3);
-                    minx = rectpos(1);
-                    if (xpos > minx & xpos < maxx) 
-                        if current_syllables(syl_cnt) <= curr_active
-                            curr_active = curr_active - 1;
-                        end
-                        elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) = [];
-                        elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) = [];
-                        elements{file_loc_in_keys}.segAbsStartTimes(current_syllables(syl_cnt)) = [];
-                        elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)) = [];
-                        remove_syllables;
-                        current_syllables(syl_cnt+1:end) = current_syllables(syl_cnt+1:end) - 1;
-                        current_syllables(syl_cnt) = [];        
-                        %cellfun(@delete,hs);
-                        
-                        [hs, current_syllables] = display_rects(ax,[tonset toffset]);
-%                         delete(get(hs(syl_cnt),'UserData'));
-%                         delete(hs(syl_cnt));
-                        %hs(syl_cnt) = [];
-                        break;
-                    end
-                  end
-                  params_handles.file_list.UserData = elements;
+                range_rect = getrect(ax); 
+                tstart = range_rect(1);
+                tend = range_rect(1)+range_rect(3);
+                remove_syllables;
+                to_delete = find(elements{file_loc_in_keys}.segFileStartTimes(current_syllables) >= tstart & ...
+                    elements{file_loc_in_keys}.segFileEndTimes(current_syllables) <= tend);
+                elements{file_loc_in_keys}.segFileStartTimes(to_delete) = [];
+                elements{file_loc_in_keys}.segFileEndTimes(to_delete) = [];
+                elements{file_loc_in_keys}.segAbsStartTimes(to_delete) = [];
+                elements{file_loc_in_keys}.segType(to_delete) = [];
+                
+                syl_in_win = find(elements{file_loc_in_keys}.segFileStartTimes >= tonset & ...
+                    elements{file_loc_in_keys}.segFileEndTimes <= toffset);
+                if ~isempty(syl_in_win)
+                    curr_active = syl_in_win(1);
                 end
+                [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+                params_handles.file_list.UserData = elements;
+                    
+% % %                 if (xpos > tonset & xpos < toffset)             
+% % %                   for syl_cnt = 1:numel(current_syllables) %start_syl:min(start_syl+numel(hs)-1,numel(syl_idx))
+% % %                     %syl_cnt = syl_num - start_syl+1;
+% % %                     rectpos = get_pos(syl_cnt);
+% % %                     maxx = rectpos(1)+rectpos(3);
+% % %                     minx = rectpos(1);
+% % %                     if (xpos > minx & xpos < maxx) 
+% % %                         if current_syllables(syl_cnt) <= curr_active
+% % %                             curr_active = curr_active - 1;
+% % %                         end
+% % %                         elements{file_loc_in_keys}.segFileStartTimes(current_syllables(syl_cnt)) = [];
+% % %                         elements{file_loc_in_keys}.segFileEndTimes(current_syllables(syl_cnt)) = [];
+% % %                         elements{file_loc_in_keys}.segAbsStartTimes(current_syllables(syl_cnt)) = [];
+% % %                         elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)) = [];
+% % %                         remove_syllables;
+% % %                         current_syllables(syl_cnt+1:end) = current_syllables(syl_cnt+1:end) - 1;
+% % %                         current_syllables(syl_cnt) = [];        
+% % %                         %cellfun(@delete,hs);
+% % %                         
+% % %                         [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+% % % %                         delete(get(hs(syl_cnt),'UserData'));
+% % % %                         delete(hs(syl_cnt));
+% % %                         %hs(syl_cnt) = [];
+% % %                         break;
+% % %                     end
+% % %                   end
+% % %                   params_handles.file_list.UserData = elements;
+% % %                 end
             case 't' %tag
                 if ismember(curr_active,current_syllables)
                     syl_cnt = find(current_syllables == curr_active);
