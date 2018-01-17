@@ -25,7 +25,7 @@ Importantly, changes to settings in other windows will only take an effect when 
 * **p** - Play currently visible spectrogram.
 * **s** - Tag a flexible segment - This is very useful. The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range get the tag that is currently chosen in the setting window.
 * **a** - Add segment - A new segment will be created in the range, chosen by clicking and dragging the mouse. The new segment cannot overlap with others and will get the tag **'-1'** that indicates an un-annotated segment. 
-* **d** - Delete a segment - The currently chosen segment will be deleted if it's visible
+* **d** - Delete segments - The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range are deleted.
 * **f** - Focus - Indicate a range in the spectrogram and zoom.
 * **g** - Move all segment bounaries to the nearest threshold crossing. This command is processed from left (earlier) to right (later) in the Spectrogram panel. Boundaries will not move if overlaps occur or if the threshold crossings are outside the visible time range.
 * **j** - Join - The currently chosen segment, if visible, is joined with the next. The tag of the currently chosen segment is applied to the joined segment.
