@@ -18,3 +18,5 @@ BoutAnnotation_settings_file.mat
 CanaryBoutPipeLine.m~
 
 helpers/GUI/ParamsDialog.m~
+
+*.m~
