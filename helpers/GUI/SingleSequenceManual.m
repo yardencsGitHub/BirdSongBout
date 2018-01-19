@@ -709,10 +709,10 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 remove_syllables;
                 to_delete = find(elements{file_loc_in_keys}.segFileStartTimes(current_syllables) >= tstart & ...
                     elements{file_loc_in_keys}.segFileEndTimes(current_syllables) <= tend);
-                elements{file_loc_in_keys}.segFileStartTimes(to_delete) = [];
-                elements{file_loc_in_keys}.segFileEndTimes(to_delete) = [];
-                elements{file_loc_in_keys}.segAbsStartTimes(to_delete) = [];
-                elements{file_loc_in_keys}.segType(to_delete) = [];
+                elements{file_loc_in_keys}.segFileStartTimes(current_syllables(to_delete)) = [];
+                elements{file_loc_in_keys}.segFileEndTimes(current_syllables(to_delete)) = [];
+                elements{file_loc_in_keys}.segAbsStartTimes(current_syllables(to_delete)) = [];
+                elements{file_loc_in_keys}.segType(current_syllables(to_delete)) = [];
                 
                 syl_in_win = find(elements{file_loc_in_keys}.segFileStartTimes >= tonset & ...
                     elements{file_loc_in_keys}.segFileEndTimes <= toffset);
