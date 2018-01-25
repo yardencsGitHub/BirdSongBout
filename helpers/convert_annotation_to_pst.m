@@ -13,7 +13,8 @@ function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,i
 % Output:
 %   DATA - a cell array of strings
 AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
+onset_sym = '';
+offset_sym = 'z';
 
 MaxSep = 0.5; % maximal phrase separation within a bout (sec)
 
@@ -58,12 +59,15 @@ end
 for i = 1:numel(join_entries)
     syllables = setdiff(syllables,join_entries{i}(2:end));
 end
+syllables = [-1000 1000 syllables];
 
 temp = [];
 for fnum = 1:numel(keys)
-    if ismember(return_date_num(keys{fnum}),datenum(ignore_dates))
-        '4';
-        continue;
+    if ~isempty(ignore_dates)
+        if ismember(return_date_num(keys{fnum}),datenum(ignore_dates))
+            '4';
+            continue;
+        end
     end
     element = elements{fnum};
     locs = find(ismember(element.segType,ignore_entries));
@@ -79,20 +83,20 @@ for fnum = 1:numel(keys)
     try
         phrases = return_phrase_times(element);
         
-        currDATA = AlphaNumeric(syllables == phrases.phraseType(1));
+        currDATA = [onset_sym AlphaNumeric(syllables == phrases.phraseType(1))];
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
             else
                 if (numel(currDATA) > min_phrases)
-                    DATA = {DATA{:} currDATA};
+                    DATA = {DATA{:} [currDATA offset_sym]};
                 end
-                currDATA = AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1));
+                currDATA = [onset_sym AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
            
-            end
-            if (numel(currDATA) > min_phrases)
-                DATA = {DATA{:} currDATA};
-            end
+            end  
+        end
+        if (numel(currDATA) > min_phrases)
+            DATA = {DATA{:} [currDATA offset_sym]};
         end
     catch em
         '8'

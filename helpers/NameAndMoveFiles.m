@@ -12,7 +12,7 @@ for birdnum = 1:n_birds
     file_cnt = 1;
     cd(TargetDir);
     birdname = BirdsDirs{birdnum};
-    if ~exist(birdname,'dir');
+    if ~exist(birdname,'dir')
         mkdir(birdname);
     end
     cd(BaseDir);
