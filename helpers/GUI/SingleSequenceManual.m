@@ -1,5 +1,5 @@
 function SingleSequenceManual(DIR,annotation_filename,template_filename)
-    settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
+    settings_file_path = '/Users/yardenc/Documents/Experiments/Code and Hardware Dev/GitHub/BirdSongBout/BirdSongBout/helpers/GUI';
     settings_file_name = 'BoutAnnotation_settings_file.mat';
     full_setting_path = fullfile(settings_file_path,settings_file_name);
     cd (DIR);
