@@ -3,6 +3,8 @@ This is an alpha version of a simple and keyboard-interface based tool for sound
 ## Running this tool
 This tool runs on a single folder of WAV files that are sampled at the same rate. (Mine are sampled at 48000Hz). To run the GUI for the first time in a folder run the main matlab script **SingleSequenceManual(path_to_WAV_folder,'','')**. Set **path_to_WAV_folder** to be the full path to the folder that contains the WAV files. **Note:** the code creates a settings file and currently the folder that contains that file needs to be indicated within the code itself (first lines of SingleSequenceManual.m). 
 During the first run you will name two files - the file that contains the annotations (annotation_file_name.mat) and the file that contains the syllable templates (template_file_name.mat). In future runs it is possible to choose those files by running **SingleSequenceManual(path_to_WAV_folder,'annotation_file_name.mat','template_file_name.mat')**.
+### Warning: Possible user-created annotation error
+It is possible to drag segments and make them overlap or exceed the edges of the entire sound file. This is not prevented in the current version and will create a corrupted annotation file.
 ## Workflow
 Three panels open after running the GUI or after starting to work on a new WAV file (see below):
 ### Settings and parameters dialog
@@ -25,7 +27,7 @@ Importantly, changes to settings in other windows will only take an effect when 
 * **p** - Play currently visible spectrogram.
 * **s** - Tag a flexible segment - This is very useful. The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range get the tag that is currently chosen in the setting window.
 * **a** - Add segment - A new segment will be created in the range, chosen by clicking and dragging the mouse. The new segment cannot overlap with others and will get the tag **'-1'** that indicates an un-annotated segment. 
-* **d** - Delete a segment - The currently chosen segment will be deleted if it's visible
+* **d** - Delete segments - The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range are deleted.
 * **f** - Focus - Indicate a range in the spectrogram and zoom.
 * **g** - Move all segment bounaries to the nearest threshold crossing. This command is processed from left (earlier) to right (later) in the Spectrogram panel. Boundaries will not move if overlaps occur or if the threshold crossings are outside the visible time range.
 * **j** - Join - The currently chosen segment, if visible, is joined with the next. The tag of the currently chosen segment is applied to the joined segment.
