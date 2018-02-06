@@ -20,7 +20,7 @@ for birdnum = 1:numel(birds)
     [all_labels,label_idx] = sort(all_labels); 
     
     cd mat;
-    for fnum = 1:numel(wavs)
+    for fnum = 330:numel(wavs)
         
         load([wavs{fnum}(1:end-3) 'mat']);
         labels = zeros(1,numel(t));
@@ -33,6 +33,7 @@ for birdnum = 1:numel(birds)
             labels(onset:offset) = label_idx(all_labels==syl_str{fnum}(ct)*1);
         end
         save([wavs{fnum}(1:end-3) 'mat'],'s','t','f','labels');
+        display(wavs{fnum});
         display([birdnum fnum/numel(syl_str)])
     end
 end
