@@ -13,7 +13,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                             116          94        2385         518];
         settings_params.tmpthr = 0;
         settings_params.win_size = 1;
-        max_settings_params.win_size = 3;
+        %settings_params.win_size = 3;
         settings_params.t_step = 0.5;
         [~,settings_params.FS] = audioread(wav_files(1).name);
         settings_params.fmax = 8000;
@@ -21,7 +21,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
         settings_params.min_gap = 0.005;
         settings_params.min_syl = 0.005;
         settings_params.map_caxis = [0 10];
-        settings_params.fmin = 300;  
+        settings_params.fmin = 500;  
+        settings_params.fmax = 7000;
         save(fullfile(settings_file_path,settings_file_name),'settings_params');
     end
     
@@ -33,6 +34,8 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     params_handles.caxis_min.String = num2str(settings_params.map_caxis(1));
     params_handles.caxis_max.String = num2str(settings_params.map_caxis(2));
     params_handles.dir_name.String = DIR;
+    params_handles.freq_min.String = num2str(settings_params.fmin);
+    params_handles.freq_max.String = num2str(settings_params.fmax);
     
     %%
     
@@ -160,7 +163,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     
     tonset = 0;
     toffset = settings_params.win_size;
-    h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+    h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))))]);
     h_temp = figure('Position',settings_params.window_positions(3,:)); 
     ax_temp = axes;
     %plot(T(T >= tonset & T<=toffset),log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))));
@@ -170,7 +173,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     set(ax_temp,'FontSize',14);
     xlabel(ax_temp,'Time (sec)');
     if (settings_params.tmpthr == 0)
-        settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
+        settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,T >= tonset & T<=toffset)))),0.1);
     end
     h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
     pause;
@@ -178,7 +181,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     settings_params.tmpthr = thr;
     
         %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
+    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
     % prepare mock syllables for auto positioning
     mock_ofsettings_params.FS = off_times(off_times > on_times(1));
     mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -200,7 +203,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     params_handles.save_settings.UserData = {settings_params window_handles full_setting_path};
 %%%%%%%%%%%%%%%%% functions
     function draw_spec(axes_handle) %(T >= tonset & T<=toffset) T >= tonset & T<=toffset
-        imagesc(axes_handle,T,F(F<settings_params.fmax),abs(S(F<settings_params.fmax,:))); colormap(1-gray); caxis(settings_params.map_caxis); xlim([tonset toffset]);
+        imagesc(axes_handle,T,F(F<settings_params.fmax & F>settings_params.fmin),log(1+abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))); colormap(1-gray); caxis(settings_params.map_caxis); xlim([tonset toffset]);
         axes(axes_handle);
         set(gca,'YDir','normal');
         hold on; 
@@ -488,10 +491,43 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 settings_params.min_gap = str2num(params_handles.MinGap.String);
                 settings_params.min_syl = str2num(params_handles.MinSyl.String);
                 settings_params.t_step = str2num(params_handles.StepSize.String);
+                frange_old = [settings_params.fmin settings_params.fmax];
+                settings_params.fmin = str2num(params_handles.freq_min.String);
+                settings_params.fmax = str2num(params_handles.freq_max.String);
                 old_caxis = settings_params.map_caxis;
                 settings_params.map_caxis = [str2num(params_handles.caxis_min.String) str2num(params_handles.caxis_max.String)];
                 if (sum(abs(old_caxis-settings_params.map_caxis)) ~= 0)
                     caxis(ax,settings_params.map_caxis);
+                end
+                if (sum(abs(frange_old-[settings_params.fmin settings_params.fmax])) ~= 0)
+                    delete(h_rect);
+                    plot_full_amplitude_envelope(axes_map);
+                    set(axes_map,'Position',[0.01 0.15 0.98 0.8]); 
+                    set(axes_map,'YTick',[]);
+                    xlim([tmin tmax]);
+                    set(axes_map,'FontSize',14);
+                    xlabel(axes_map,'Time (sec)');
+                    h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))))]);
+    
+                    delete(h_line);
+                    plot_full_amplitude_envelope(ax_temp);
+                    xlim([tonset toffset]);
+                    set(ax_temp,'YTick',[]);
+                    set(ax_temp,'FontSize',14);
+                    xlabel(ax_temp,'Time (sec)');
+                    h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
+                    
+                    
+                    remove_syllables;
+                    draw_spec(ax);
+                    set(ax,'FontSize',14);
+                    xlabel(ax,'Time (sec)');
+                    ylabel(ax,'Frequency (Hz)');
+                    [hs, current_syllables] = display_rects(ax,[tonset toffset]);
+
+                    set(hf,'WindowbuttonDownFcn',@clickcallback)
+                    set(hf,'KeyPressFcn',@(h_obj,evt) keystroke(h_obj,evt));
+                    drawnow;
                 end
                 posflag = 0;
                 update_elements;
@@ -507,7 +543,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 %if (settings_params.tmpthr ~= thr)
                 thrflag = 1;
                 settings_params.tmpthr = thr;
-                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,settings_params.min_gap,settings_params.min_syl);
+                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,settings_params.min_gap,settings_params.min_syl);
                 % prepare mock syllables for auto positioning
                 mock_ofsettings_params.FS = off_times(off_times > on_times(1));
                 mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -580,7 +616,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 delete(h_line);
                 h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
-                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))))]);
             case 'z'
                 update_elements;
                 tonset = max(tonset-settings_params.t_step,tmin); toffset = max([tmin+settings_params.t_step,toffset-settings_params.t_step,tonset+settings_params.win_size]);
@@ -601,7 +637,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 delete(h_line);
                 h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 axes(ax);
-                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+                setPosition(h_rect,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))))]);
             case 'a'
                 update_elements;
 %                 rectpos = getPosition(hs(1)); minx = rectpos(1);
@@ -661,7 +697,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 
                 tonset = 0;
                 toffset = settings_params.win_size;
-                h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>0,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>0,:)))))]);
+                h_rect = imrect(axes_map,[tonset min(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:))))) toffset-tonset max(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))))]);
 
                 h_temp = figure('Position',settings_params.window_positions(3,:)); 
                 ax_temp = axes;
@@ -672,7 +708,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 set(ax_temp,'FontSize',14);
                 xlabel(ax_temp,'Time (sec)');
                 if (settings_params.tmpthr == 0)
-                    settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>0,T >= tonset & T<=toffset)))),0.1);
+                    settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,T >= tonset & T<=toffset)))),0.1);
                 end
                 h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                 pause;
@@ -680,7 +716,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 settings_params.tmpthr = thr;
 
                     %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
+                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
                 % prepare mock syllables for auto positioning
                 mock_ofsettings_params.FS = off_times(off_times > on_times(1));
                 mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -777,7 +813,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                 mock_locs = find(mock_ons >= tonset & mock_ofsettings_params.FS <= toffset);
                 for mock_cnt = 1:numel(mock_locs)
                     mock_loc = mock_locs(mock_cnt);
-                    newrect = [mock_ons(mock_loc) 0 (mock_ofsettings_params.FS(mock_loc)-mock_ons(mock_loc)) settings_params.fmax];
+                    newrect = [mock_ons(mock_loc) settings_params.fmin (mock_ofsettings_params.FS(mock_loc)-mock_ons(mock_loc)) settings_params.fmax];
                     add_syllable(newrect,current_label);
                     axes(ax);
                     %cellfun(@delete,hs);
@@ -984,7 +1020,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
 
     function plot_full_amplitude_envelope(target_axes_handle)
         hold(target_axes_handle,'off')
-        logS = log(sum(abs(S(F<settings_params.fmax & F>0,:))));
+        logS = log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:))));
         if isempty(phrases)
             plot(target_axes_handle,T,logS);
         else
