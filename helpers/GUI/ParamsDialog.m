@@ -311,7 +311,7 @@ fbins = 257;
 sig = templates.wavs(sylnum).wav;        
 [S,F,T,P] = spectrogram((sig/(sqrt(mean(sig.^2)))),220,220-44,512,FS,'reassigned');
 sig_len = size(S,2);
-figure; imagesc(T,F,abs(S)); colormap(1-gray); set(gca,'Ydir','normal'); ylim([fmin fmax]); caxis([str2num(handles.caxis_min.String) str2num(handles.caxis_max.String)]); set(gca,'FontSize',16); 
+figure; imagesc(T,F,log(1+abs(S))); colormap(1-gray); set(gca,'Ydir','normal'); ylim([fmin fmax]); caxis([str2num(handles.caxis_min.String) str2num(handles.caxis_max.String)]); set(gca,'FontSize',16); 
 title(['Syllable ' num2str(templates.wavs(sylnum).segType) , ', file: ' templates.wavs(sylnum).filename],'interpreter','none');
 xticks([T(1) T(end)]-T(1)); xlabel('Time(sec)'); ylabel('Frequency(Hz)');
 

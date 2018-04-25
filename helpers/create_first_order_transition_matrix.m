@@ -16,7 +16,7 @@ function [resmat, state_count, state_labels] = create_first_order_transition_mat
 %   to j.
 %   state_count - # of times each label is encountered.
 %   state_labels - the lables of the matrix
-MaxSep = 0.5; % maximal phrase separation within a bout (sec)
+MaxSep = 0.15; %0.5; % maximal phrase separation within a bout (sec)
 
 if ~exist(path_to_annotation_file)
     resmat = [];

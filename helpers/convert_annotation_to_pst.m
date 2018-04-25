@@ -1,4 +1,4 @@
-function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases)
+function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -13,10 +13,22 @@ function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,i
 % Output:
 %   DATA - a cell array of strings
 AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-onset_sym = '';
-offset_sym = 'z';
+onset_sym = '1';
+offset_sym = '2';
 
-MaxSep = 0.5; % maximal phrase separation within a bout (sec)
+MaxSep = 0.25; % maximal phrase separation within a bout (sec)
+
+nparams=length(varargin);
+for i=1:2:nparams
+	switch lower(varargin{i})
+		case 'maxsep'
+			MaxSep=varargin{i+1};
+        case 'onset_sym'
+            onset_sym = varargin{i+1};
+        case 'offset_sym'
+            offset_sym = varargin{i+1};
+    end
+end
 
 if ~exist(path_to_annotation_file)
     DATA = [];

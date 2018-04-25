@@ -1,5 +1,6 @@
 function SingleSequenceManual(DIR,annotation_filename,template_filename)
-    settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
+    settings_file_path = '/Users/yardenc/Documents/Experiments/Code and Hardware Dev/GitHub/BirdSongBout/BirdSongBout/helpers/GUI'
+    %settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
     settings_file_name = 'BoutAnnotation_settings_file.mat';
     full_setting_path = fullfile(settings_file_path,settings_file_name);
     cd (DIR);
@@ -517,7 +518,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
                     xlabel(ax_temp,'Time (sec)');
                     h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
                     
-                    
+                    settings_params.text_height = settings_params.fmax*1.05;
                     remove_syllables;
                     draw_spec(ax);
                     set(ax,'FontSize',14);
@@ -1019,7 +1020,7 @@ function SingleSequenceManual(DIR,annotation_filename,template_filename)
     end
 
     function plot_full_amplitude_envelope(target_axes_handle)
-        hold(target_axes_handle,'off')
+        cla(target_axes_handle);
         logS = log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:))));
         if isempty(phrases)
             plot(target_axes_handle,T,logS);
