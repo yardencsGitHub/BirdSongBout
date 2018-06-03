@@ -1,4 +1,4 @@
-function [resmat, state_count, state_labels] = create_first_order_transition_matrix(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,to_normalize,include_zero)
+function [resmat, state_count, state_labels,state_timing] = create_first_order_transition_matrix(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,to_normalize,include_zero,varargin)
 % This script takes an annotation file and returns a square matrix of
 % either normalized or non-normalized transition matrix
 % Inputs:
@@ -16,8 +16,17 @@ function [resmat, state_count, state_labels] = create_first_order_transition_mat
 %   to j.
 %   state_count - # of times each label is encountered.
 %   state_labels - the lables of the matrix
-MaxSep = 0.15; %0.5; % maximal phrase separation within a bout (sec)
-
+MaxSep = 0.25; % maximal phrase separation within a bout (sec)
+use_idx = [];
+nparams=length(varargin);
+for i=1:2:nparams
+	switch lower(varargin{i})
+		case 'maxsep'
+			MaxSep=varargin{i+1};
+        case 'use_idx'
+            use_idx=varargin{i+1};
+    end
+end
 if ~exist(path_to_annotation_file)
     resmat = [];
     state_labels = [];
@@ -62,11 +71,19 @@ end
 syllables = [-1000 syllables 1000];
 num_syllables = numel(syllables);
 resmat = zeros(num_syllables);
+%state_timing = zeros(num_syllables,21);
+state_timing = cell(1,num_syllables);
+cnt=0;
 for fnum = 1:numel(keys)
     if ismember(return_date_num(keys{fnum}),datenum(ignore_dates))
         '4';
         continue;
     end
+    tokens = regexp(keys{fnum},'_','split');
+    if ~isempty(use_idx) && ~ismember(str2num(tokens{2}),use_idx)
+        continue;
+    end
+       
     element = elements{fnum};
     locs = find(ismember(element.segType,ignore_entries));
     element.segAbsStartTimes(locs) = [];
@@ -87,6 +104,8 @@ for fnum = 1:numel(keys)
         for phrasenum = 1:numel(phrases.phraseType)-1
             resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) = ...
                 resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) + 1;
+            state_timing{syllables == phrases.phraseType(phrasenum)} = [state_timing{syllables == phrases.phraseType(phrasenum)} ...
+                (phrasenum - max(find(phrases.phraseType' == -1000 & [1:numel(phrases.phraseType)] <= phrasenum)))];
 %             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
 %             resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) = ...
 %                 resmat(syllables == phrases.phraseType(phrasenum),syllables == phrases.phraseType(phrasenum+1)) + 1;
@@ -95,11 +114,14 @@ for fnum = 1:numel(keys)
 %                 resmat(syllables == phrases.phraseType(phrasenum),syllables == -2000) + 1;
 %             end
         end
+        state_timing{syllables == phrases.phraseType(end)} = [state_timing{syllables == phrases.phraseType(end)} ...
+                (numel(phrases.phraseType) - max(find(phrases.phraseType' == -1000 )))];
     catch em
         '8'
     end
+    cnt = cnt+1;
 end
-
+disp(cnt);
 state_count = sum(resmat,2);
 
 switch to_normalize
