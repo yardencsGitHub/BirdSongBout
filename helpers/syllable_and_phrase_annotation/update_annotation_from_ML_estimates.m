@@ -1,4 +1,4 @@
-function [elements, keys] = update_annotation_from_ML_estimates(path_annotation,path_templates,path_estimates)
+function [elements, keys] = update_annotation_from_ML_estimates(path_annotation,path_templates,path_estimates,varargin)
 MinSylDuration = 0.005; % minimal syllable duration = 8 mSec
 %addpath(genpath('/Users/yardenc/Documents/Experiments/Code and Hardware Dev/TimOs'));
 params = load(path_annotation);
@@ -12,21 +12,56 @@ base_struct = struct('exper',expr, ...
                      'fs',48000, ...
                      'drugstatus', 'No Drug', ...
                      'directstatus', 'Undirected');
-load(path_estimates);
-load(path_templates);
-syllables = [templates.wavs.segType];
+
+if isstr(path_estimates)
+    load(path_estimates);
+else
+    estimates = path_estimates;
+    keys = params.keys;
+end
+if isstr(path_templates)
+    load(path_templates);
+    syllables = [templates.wavs.segType];
+else
+    syllables = path_templates;
+end
 num_files = numel(keys);
 elements = {};
 tempkeys = {};
 dt = 1/3.692307692307692e+02;
+trill_syllables = [];
+max_zero_bins_to_ignore = 2;
+nparams=length(varargin);
+for i=1:2:nparams
+	switch lower(varargin{i})
+		case 'minsylduration'
+			MinSylDuration = varargin{i+1};
+        case 'dt'
+            dt = varargin{i+1};
+        case 'trill_syllables'
+            trill_syllables = varargin{i+1};
+        case 'max_zero_bins_to_ignore'
+            max_zero_bins_to_ignore = varargin{i+1};
+    end
+end
+
 cnt = 1;
 for fnum = 1:num_files  
     temp = regexp(keys{fnum},'_','split');
-    x = estimates{fnum};
+    x = estimates{fnum}; x = reshape(x,1,numel(x));
+    % fix abberant zero segments
+    xzeros = 1*(x==0);
+    dxzeros = diff([0 xzeros 0]); locs_on = find(dxzeros == 1); locs_off = find(dxzeros == -1);
+    locs = find(locs_off - locs_on <= max_zero_bins_to_ignore);
+    for locnum = 1:numel(locs)
+        xon = max(locs_on(locs(locnum))-1,1); xoff = min(locs_off(locs(locnum)),numel(x));
+        x(locs_on(locs(locnum)):locs_off(locs(locnum))-1) = max(setdiff(x(xon:xoff),0));
+    end
+    % removed short sequences of zeros (set by max_zero_bins_to_ignore)
     x = [0 x 0];
     syl_onset = find(x(1:end-1) == 0 & x(2:end) ~=0);
     syl_offset = find(x(1:end-1) ~= 0 & x(2:end) ==0);
-    if numel(syl_onset) > 0 % if we have any syllables at all
+    if numel(syl_onset) > 1 % if we have any syllables at all
 
         time = getFileTime(keys{cnt});
         syl_durations = (syl_offset - syl_onset) * dt;
@@ -34,8 +69,10 @@ for fnum = 1:num_files
         syl_onset(syl_durations < MinSylDuration) = [];
         syl_offset(syl_durations < MinSylDuration) = [];
         y = zeros(numel(syl_onset),1);
-        for sylnum = 1:numel(y)
-            y(sylnum) = mode(estimates{fnum}(syl_onset(sylnum):syl_offset(sylnum)-1));
+        for sylnum = 1:numel(y) % in case we encompassed some zeros
+            tempseq = estimates{fnum}(syl_onset(sylnum):syl_offset(sylnum)-1);
+            tempseq(tempseq == 0) = [];
+            y(sylnum) = mode(tempseq);
         end
         
         elements{cnt} = base_struct;
@@ -43,10 +80,40 @@ for fnum = 1:num_files
         elements{cnt}.segFileStartTimes = (syl_onset - 1) * dt;
         elements{cnt}.segAbsStartTimes = time + elements{cnt}.segFileStartTimes/(24*60*60);
         elements{cnt}.segFileEndTimes = (syl_offset - 1) * dt;
-        elements{cnt}.segType = syllables(y)';
+        try
+            elements{cnt}.segType = syllables(y)';
+        catch em
+            '-';
+        end
+        % fix trill-only syllables 
+        if ~isempty(trill_syllables)
+            tempsegtype = syllables(y)';
+            for tsylnum = 1:numel(trill_syllables)
+                locs = find(tempsegtype == trill_syllables(tsylnum));
+                for locnum = 1:numel(locs)
+                    if locs(locnum) == 1            
+                       if tempsegtype(locs(locnum)) ~= tempsegtype(locs(locnum) + 1)
+                            tempsegtype(locs(locnum)) = tempsegtype(locs(locnum) + 1);
+                       end
+                    end
+                    if locs(locnum) == numel(y)
+                        if tempsegtype(locs(locnum)) ~= tempsegtype(locs(locnum) - 1)
+                            tempsegtype(locs(locnum)) = tempsegtype(locs(locnum) - 1);
+                        end
+                    end
+                    if (locs(locnum) < numel(y) && locs(locnum) > 1)
+                        if tempsegtype(locs(locnum)) ~= tempsegtype(locs(locnum) - 1) && tempsegtype(locs(locnum)) ~= tempsegtype(locs(locnum) + 1)
+                            tempsegtype(locs(locnum)) = tempsegtype(locs(locnum) - 1);
+                        end
+                    end
+                end
+            end
+            elements{cnt}.segType = tempsegtype;
+        end
      
         tempkeys{cnt} = [keys{fnum}(1:end-3) 'wav'];
         cnt = cnt + 1;  
+        
     else
         elements{cnt} = base_struct;
         elements{cnt}.filenum = temp{2};
@@ -58,6 +125,7 @@ for fnum = 1:num_files
         tempkeys{cnt} = [keys{fnum}(1:end-3) 'wav'];
         cnt = cnt + 1;
     end
+    
 end
 
 keys = tempkeys;
