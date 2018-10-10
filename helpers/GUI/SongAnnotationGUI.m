@@ -1,13 +1,10 @@
 function SongAnnotationGUI
-fprintf(1, '%s', ctfroot);
-    DIR = pwd;
-    addpath(DIR);
+   
     settings_file_path = pwd; %'/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI/';
     %settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
     settings_file_name = 'BoutAnnotation_settings_file.mat';
     full_setting_path = fullfile(settings_file_path,settings_file_name);
-    cd (DIR);
-    wav_files = dir('*.wav');
+    
     if exist(fullfile(settings_file_path,settings_file_name))
         load(fullfile(settings_file_path,settings_file_name),'settings_params')
     else
@@ -19,7 +16,8 @@ fprintf(1, '%s', ctfroot);
         settings_params.win_size = 1;
         %settings_params.win_size = 3;
         settings_params.t_step = 0.5;
-        [~,settings_params.FS] = audioread(wav_files(1).name);
+        [tmp_wav_file, tmp_path, ~] = uigetfile('*.wav', 'Choose WAV file');
+        [~,settings_params.FS] = audioread(fullfile(tmp_path,tmp_wav_file));
         settings_params.fmax = 8000;
         settings_params.text_height = 8250;
         settings_params.min_gap = 0.005;
@@ -32,6 +30,22 @@ fprintf(1, '%s', ctfroot);
     
     h_params = ParamsDialog('Position',settings_params.window_positions(1,:));
     params_handles = get(h_params,'UserData');
+    %% get working directory .. wait for it
+    params_handles.dir_name.UserData = 0;
+    uiwait(h_params);
+%     while flag == 0
+%        '*'; 
+%        params_handles = get(h_params,'UserData');
+%        flag = params_handles.dir_name.UserData;
+%     end
+    %DIR = pwd;
+    %addpath(DIR);
+    %cd (DIR);
+    DIR = params_handles.dir_name.String; %cd(DIR);
+    wav_files = dir(fullfile(DIR,'*.wav'));
+    
+    annotation_filename = params_handles.annotation_filename.String;
+    template_filename = params_handles.templates_filename.String;
     params_handles.MinGap.String = num2str(settings_params.min_gap);
     params_handles.MinSyl.String = num2str(settings_params.min_syl);
     params_handles.StepSize.String = num2str(settings_params.t_step);
@@ -41,23 +55,12 @@ fprintf(1, '%s', ctfroot);
     params_handles.freq_min.String = num2str(settings_params.fmin);
     params_handles.freq_max.String = num2str(settings_params.fmax);
     
-    %% get working directory .. wait for it
-    flag = 0;
-    params_handles.dir_name.UserData = 0;
-    uiwait(h_params);
-%     while flag == 0
-%        '*'; 
-%        params_handles = get(h_params,'UserData');
-%        flag = params_handles.dir_name.UserData;
-%     end
-    DIR = params_handles.dir_name.String; cd(DIR);
-    annotation_filename = params_handles.annotation_filename.String;
-    template_filename = params_handles.templates_filename.String;
+    
     %%
     
     
-    if exist(template_filename)
-        load(template_filename,'templates');
+    if exist(fullfile(DIR,template_filename))
+        load(fullfile(DIR,template_filename),'templates');
         if ~ismember(-1,[templates.wavs.segType])
             syllables = [[templates.wavs.segType] -1]; 
         else
@@ -75,8 +78,8 @@ fprintf(1, '%s', ctfroot);
     n_syllables = numel(syllables);
     freq_min = 300; freq_max = 8000;
     colors = distinguishable_colors(n_syllables,'w');
-    if exist(annotation_filename)
-        load(annotation_filename,'keys','elements');
+    if exist(fullfile(DIR,annotation_filename))
+        load(fullfile(DIR,annotation_filename),'keys','elements');
         filename = keys{1};
         params_handles.file_name.String = filename;
         params_handles.file_list.String = keys;
@@ -115,7 +118,7 @@ fprintf(1, '%s', ctfroot);
         %unique_dates = datestr(setdiff(unique(datenum(dates)),[736804]),'yyyy_mm_dd'); %does not include 04/19-21th (remove for other birds)
     else
         bird_exper_name = input('Type bird name: ','s');
-        [y,fs] = audioread(wav_files(1).name);
+        [y,fs] = audioread(fullfile(DIR,wav_files(1).name));
         exper = struct('birdname',bird_exper_name,'expername','Recording from Canary',...
             'desiredInSampRate',fs,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
         
@@ -188,7 +191,7 @@ fprintf(1, '%s', ctfroot);
     set(ax_temp,'YTick',[]);
     set(ax_temp,'FontSize',14);
     xlabel(ax_temp,'Time (sec)');
-    if (settings_params.tmpthr == 0)
+    if (settings_params.tmpthr ~= -100)
         settings_params.tmpthr = quantile(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,T >= tonset & T<=toffset)))),0.1);
     end
     h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);

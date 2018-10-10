@@ -500,11 +500,11 @@ function choose_dir_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 tmpDIR = uigetdir(pwd,'Choose a directory that has all wav files and annotation files');
-cd(tmpDIR);
+%cd(tmpDIR);
 new_ann = questdlg('Do you want to start a new annotation file?','Annotation','YES','NO','NO');
 if strcmp(new_ann,'NO')
-    [tmp_ann_fname, ~, ~] = uigetfile('*.mat', 'Choose an ANNOTATION file');
-    [tmp_tmp_fname, ~, ~] = uigetfile('*.mat', 'Choose a TEMPLATE file');
+    [tmp_ann_fname, ~, ~] = uigetfile(fullfile(tmpDIR,'*.mat'), 'Choose an ANNOTATION file');
+    [tmp_tmp_fname, ~, ~] = uigetfile(fullfile(tmpDIR,'*.mat'), 'Choose a TEMPLATE file');
 else
     tmp_ann_fname = ''; tmp_tmp_fname = '';
 end
