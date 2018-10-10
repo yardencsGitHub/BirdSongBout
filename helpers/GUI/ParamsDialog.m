@@ -506,7 +506,7 @@ if strcmp(new_ann,'NO')
     [tmp_ann_fname, ~, ~] = uigetfile(fullfile(tmpDIR,'*.mat'), 'Choose an ANNOTATION file');
     [tmp_tmp_fname, ~, ~] = uigetfile(fullfile(tmpDIR,'*.mat'), 'Choose a TEMPLATE file');
 else
-    tmp_ann_fname = ''; tmp_tmp_fname = '';
+    tmp_ann_fname = 'nofile.mat'; tmp_tmp_fname = 'nofile.mat';
 end
 handles.dir_name.UserData = 1;
 handles.dir_name.String = tmpDIR;
