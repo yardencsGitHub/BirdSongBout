@@ -425,6 +425,64 @@ function delete_tag_button_Callback(hObject, eventdata, handles)
 % hObject    handle to delete_tag_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.delete_tag_button.UserData = 0;
+templates = handles.show_button.UserData;
+taglist = cellfun(@str2num,handles.SylTags.String);
+segnumbers = [templates.wavs.segType];
+[indx,okres] = listdlg('ListString',{num2str(reshape(segnumbers,numel(segnumbers),1))},'Name','Which labels would you like to join?');
+if numel(indx) > 1 & (okres ~= 0)
+    strres = questdlg(['Are you sure that you want to join labels ' num2str(segnumbers(indx)) ' ?']);
+    if strcmp(strres,'Yes')
+        tmpp = msgbox('The annotation and template files are about to irreversibly change. Make a backup copy!'); uiwait(tmpp);
+        handles.delete_tag_button.UserData = 1;
+        minval = min(segnumbers(indx));
+        locs_in_templates = find(ismember(segnumbers,segnumbers(indx)));
+        locs_in_taglist = find(ismember(taglist,segnumbers(indx)));
+        % update tag list
+        if ismember(-1,taglist) 
+            taglist = [1:(numel(taglist)-numel(indx)) -1]; 
+            tempcell = cell(numel(taglist),1);
+            for tmpcnt = 1:numel(tempcell)
+                tempcell{tmpcnt} = num2str(taglist(tmpcnt));
+            end
+        else
+            taglist = [1:(numel(taglist)-numel(indx)+1) -1]; 
+            tempcell = cell(numel(taglist),1);
+            for tmpcnt = 1:numel(tempcell)
+                tempcell{tmpcnt} = num2str(taglist(tmpcnt));
+            end
+        end
+        handles.SylTags.String = tempcell;
+        % update templates
+        
+        templates.wavs(indx(2:end)) = [];
+        for tmpcnt = 1:numel(templates.wavs)
+            templates.wavs(tmpcnt).segType = tmpcnt;
+        end
+        handles.show_button.UserData = templates;
+        % update elements
+        new_segnumbers = segnumbers;
+        
+        new_segnumbers(indx) = indx(1);
+        new_segnumbers(~ismember(1:numel(new_segnumbers),indx)) = [1:(indx(1)-1) (indx(1)+1):(numel(segnumbers)-numel(indx)+1)];
+        
+        elements = handles.file_list.UserData;
+        ftmp = waitbar(0,'updating elements');
+        for fnumtmp = 1:numel(elements)
+            waitbar(fnumtmp/numel(elements),ftmp);
+            for segcnt = 1:numel(elements{fnumtmp}.segType)
+                tmploc = find(segnumbers == elements{fnumtmp}.segType(segcnt));
+                if ~isempty(tmploc)
+                    elements{fnumtmp}.segType(segcnt) = new_segnumbers(tmploc);
+                end
+            end
+        end
+        handles.file_list.UserData = elements;
+        tmpp = msgbox('Done! Update the main window immediately!'); 
+        close(ftmp);
+    end
+
+end
 
 
 

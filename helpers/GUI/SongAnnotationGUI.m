@@ -54,6 +54,7 @@ function SongAnnotationGUI
     params_handles.dir_name.String = DIR;
     params_handles.freq_min.String = num2str(settings_params.fmin);
     params_handles.freq_max.String = num2str(settings_params.fmax);
+    params_handles.delete_tag_button.UserData = 0;
     
     
     %%
@@ -507,6 +508,11 @@ function SongAnnotationGUI
                  end
                       update_elements;
             case 'u' % update parameters and borders
+                if params_handles.delete_tag_button.UserData == 1
+                    elements = params_handles.file_list.UserData;
+                    templates = params_handles.show_button.UserData;
+                    params_handles.delete_tag_button.UserData = 0;
+                end
                 settings_params.min_gap = str2num(params_handles.MinGap.String);
                 settings_params.min_syl = str2num(params_handles.MinSyl.String);
                 settings_params.t_step = str2num(params_handles.StepSize.String);
