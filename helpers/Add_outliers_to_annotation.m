@@ -27,9 +27,12 @@ save(new_template_file,'templates');
 load(orig_annotation);
 for cnt = 1:num_syls
     load([spect_prefix num2str(cnt) '.mat']);
-    for segnum = 1:size(syllable_spects.idx,1)
-        fnum = syllable_spects.idx(segnum,1);
-        loc = syllable_spects.idx(segnum,2);
+    load([outlier_prefix num2str(cnt) '.mat'])
+    locs = find(output == -1);
+    for segnum = 1:numel(locs) %size(syllable_spects.idx,1)
+        
+        fnum = syllable_spects.idx(locs(segnum),1);
+        loc = syllable_spects.idx(locs(segnum),2);
         elements{fnum}.segType(loc) = elements{fnum}.segType(loc)*100;
     end
 end
