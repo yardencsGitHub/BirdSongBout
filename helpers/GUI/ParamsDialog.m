@@ -22,7 +22,7 @@ function varargout = ParamsDialog(varargin)
 
 % Edit the above text to modify the response to help ParamsDialog
 
-% Last Modified by GUIDE v2.5 23-Feb-2018 13:49:32
+% Last Modified by GUIDE v2.5 02-Oct-2018 15:38:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -425,6 +425,64 @@ function delete_tag_button_Callback(hObject, eventdata, handles)
 % hObject    handle to delete_tag_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles.delete_tag_button.UserData = 0;
+templates = handles.show_button.UserData;
+taglist = cellfun(@str2num,handles.SylTags.String);
+segnumbers = [templates.wavs.segType];
+[indx,okres] = listdlg('ListString',{num2str(reshape(segnumbers,numel(segnumbers),1))},'Name','Which labels would you like to join?');
+if numel(indx) > 1 & (okres ~= 0)
+    strres = questdlg(['Are you sure that you want to join labels ' num2str(segnumbers(indx)) ' ?']);
+    if strcmp(strres,'Yes')
+        tmpp = msgbox('The annotation and template files are about to irreversibly change. Make a backup copy!'); uiwait(tmpp);
+        handles.delete_tag_button.UserData = 1;
+        minval = min(segnumbers(indx));
+        locs_in_templates = find(ismember(segnumbers,segnumbers(indx)));
+        locs_in_taglist = find(ismember(taglist,segnumbers(indx)));
+        % update tag list
+        if ismember(-1,taglist) 
+            taglist = [1:(numel(taglist)-numel(indx)) -1]; 
+            tempcell = cell(numel(taglist),1);
+            for tmpcnt = 1:numel(tempcell)
+                tempcell{tmpcnt} = num2str(taglist(tmpcnt));
+            end
+        else
+            taglist = [1:(numel(taglist)-numel(indx)+1) -1]; 
+            tempcell = cell(numel(taglist),1);
+            for tmpcnt = 1:numel(tempcell)
+                tempcell{tmpcnt} = num2str(taglist(tmpcnt));
+            end
+        end
+        handles.SylTags.String = tempcell;
+        % update templates
+        
+        templates.wavs(indx(2:end)) = [];
+        for tmpcnt = 1:numel(templates.wavs)
+            templates.wavs(tmpcnt).segType = tmpcnt;
+        end
+        handles.show_button.UserData = templates;
+        % update elements
+        new_segnumbers = segnumbers;
+        
+        new_segnumbers(indx) = indx(1);
+        new_segnumbers(~ismember(1:numel(new_segnumbers),indx)) = [1:(indx(1)-1) (indx(1)+1):(numel(segnumbers)-numel(indx)+1)];
+        
+        elements = handles.file_list.UserData;
+        ftmp = waitbar(0,'updating elements');
+        for fnumtmp = 1:numel(elements)
+            waitbar(fnumtmp/numel(elements),ftmp);
+            for segcnt = 1:numel(elements{fnumtmp}.segType)
+                tmploc = find(segnumbers == elements{fnumtmp}.segType(segcnt));
+                if ~isempty(tmploc)
+                    elements{fnumtmp}.segType(segcnt) = new_segnumbers(tmploc);
+                end
+            end
+        end
+        handles.file_list.UserData = elements;
+        tmpp = msgbox('Done! Update the main window immediately!'); 
+        close(ftmp);
+    end
+
+end
 
 
 
@@ -471,3 +529,48 @@ function freq_max_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in choose_template.
+function choose_template_Callback(hObject, eventdata, handles)
+% hObject    handle to choose_template (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in choose_annotation.
+function choose_annotation_Callback(hObject, eventdata, handles)
+% hObject    handle to choose_annotation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function dir_name_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to dir_name (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in choose_dir.
+function choose_dir_Callback(hObject, eventdata, handles)
+% hObject    handle to choose_dir (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+tmpDIR = uigetdir(pwd,'Choose a directory that has all wav files and annotation files');
+%cd(tmpDIR);
+new_ann = questdlg('Do you want to start a new annotation file?','Annotation','YES','NO','NO');
+if strcmp(new_ann,'NO')
+    [tmp_ann_fname, ~, ~] = uigetfile(fullfile(tmpDIR,'*.mat'), 'Choose an ANNOTATION file');
+    [tmp_tmp_fname, ~, ~] = uigetfile(fullfile(tmpDIR,'*.mat'), 'Choose a TEMPLATE file');
+else
+    tmp_ann_fname = 'nofile.mat'; tmp_tmp_fname = 'nofile.mat';
+end
+handles.dir_name.UserData = 1;
+handles.dir_name.String = tmpDIR;
+handles.annotation_filename.String = tmp_ann_fname;
+handles.templates_filename.String = tmp_tmp_fname;
+handles.choose_dir.UserData = {tmpDIR tmp_ann_fname tmp_tmp_fname};
+handles.choose_dir.Enable = 'off'; 
+uiresume(handles.figure1);
+ 

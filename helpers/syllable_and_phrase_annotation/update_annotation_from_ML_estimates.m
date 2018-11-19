@@ -25,12 +25,15 @@ if isstr(path_templates)
 else
     syllables = path_templates;
 end
-num_files = numel(keys);
+num_files = numel(estimates);
 elements = {};
 tempkeys = {};
 dt = 1/3.692307692307692e+02;
 trill_syllables = [];
 max_zero_bins_to_ignore = 2;
+is_new = 1;
+
+
 nparams=length(varargin);
 for i=1:2:nparams
 	switch lower(varargin{i})
@@ -42,12 +45,24 @@ for i=1:2:nparams
             trill_syllables = varargin{i+1};
         case 'max_zero_bins_to_ignore'
             max_zero_bins_to_ignore = varargin{i+1};
+        case 'is_new'
+            is_new = varargin{i+1};
     end
+end
+if is_new == 0
+    elements = params.elements;
 end
 
 cnt = 1;
 for fnum = 1:num_files  
     temp = regexp(keys{fnum},'_','split');
+    if is_new == 0
+        cnt = find(strcmp(params.keys,[keys{fnum}(1:end-3) 'wav']));
+        if isempty(cnt)
+            disp(['not finding ' keys{fnum}]);
+            continue;
+        end
+    end
     x = estimates{fnum}; x = reshape(x,1,numel(x));
     % fix abberant zero segments
     xzeros = 1*(x==0);
@@ -62,8 +77,9 @@ for fnum = 1:num_files
     syl_onset = find(x(1:end-1) == 0 & x(2:end) ~=0);
     syl_offset = find(x(1:end-1) ~= 0 & x(2:end) ==0);
     if numel(syl_onset) > 1 % if we have any syllables at all
-
-        time = getFileTime(keys{cnt});
+       
+        time = getFileTime(keys{fnum});
+        
         syl_durations = (syl_offset - syl_onset) * dt;
         % remove too short syllables <10mSec
         syl_onset(syl_durations < MinSylDuration) = [];
@@ -110,9 +126,10 @@ for fnum = 1:num_files
             end
             elements{cnt}.segType = tempsegtype;
         end
-     
-        tempkeys{cnt} = [keys{fnum}(1:end-3) 'wav'];
-        cnt = cnt + 1;  
+        if is_new ~= 0
+            tempkeys{cnt} = [keys{fnum}(1:end-3) 'wav'];
+            cnt = cnt + 1;  
+        end
         
     else
         elements{cnt} = base_struct;
@@ -127,8 +144,11 @@ for fnum = 1:num_files
     end
     
 end
-
-keys = tempkeys;
+if is_new ~= 0
+    keys = tempkeys;
+else 
+    keys = params.keys;
+end
 end
 
 function time = getFileTime(filename)
@@ -144,7 +164,7 @@ function time = getFileTime(filename)
     tm = str2double(strparts{7});
     try
         ts = strparts{8};
-        ts =  str2double(ts(1:end-4));
+        ts =  str2double(ts); %(1:end-4)
     catch em
         ts = 0;
     end

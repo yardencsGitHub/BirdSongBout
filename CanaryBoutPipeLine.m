@@ -20,4 +20,4 @@ save bird6_annotation keys elements;
 save bird6_templates templates;
 %% now after the manual fix (by Emily M). Create annotated data
 
-add_annotation_to_mat('/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/bird_4','bird4_annotation_emily.mat','bird4_templates_emily.mat');
+add_annotation_to_mat('/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/bird_2','bird2_annotation_emily.mat','bird2_templates_emily.mat');
