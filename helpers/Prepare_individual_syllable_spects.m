@@ -59,7 +59,9 @@ for syltype = 1:n_syl
         fname = keys{filenum};
         loc = filenum;
         %phrases = return_phrase_times(elements{loc});
-        
+        if isempty(elements{filenum}.segType)
+            continue;
+        end
         [y,fs] = audioread([fname(1:end-3) 'wav']);
         [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),440,440-88,1024,fs); %440,440-88
         
