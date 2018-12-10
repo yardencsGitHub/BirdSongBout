@@ -1,20 +1,10 @@
-% pipeline for using new birdsong data for whatever purpose
-% Start with a folder full of wav files
-% Create file lists and spectrograms
+% pipeline for using Jeff's data
 % helper functions in
 % '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers'
-% 1. CreateWavsList.m (requires setting the number of files to skip in
-% parameter
-% 2. CreateSpectrogramsFromWavs.m
-%% 1: set folders dependencies
-workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb11/llb11 WAV files';
-addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
-
-%% 2: Create spectrograms from all WAV files
-cd(workDIR);
-CreateWavsList(workDIR,1);
-CreateSpectrogramsFromWavs;
-
+% 1. NameAndMoveFiles.m
+% 2. segment_labels_from_phrase_annotations.m
+% 3.  In the wav file directory: [keys, elements, templates] = create_empty_elements(DIR,bird_exper_name,[])
+% 4. [keys, elements, templates] = populate_existing_elements(path_to_annotation_file,path_to_mat_files,path_to_wav_files,dt)
 %%
 cd('/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/bird_6');
 path_to_annotation_file = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/bird_6/bird6_annotation.mat';
