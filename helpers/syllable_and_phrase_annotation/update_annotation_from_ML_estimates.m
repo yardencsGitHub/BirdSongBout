@@ -15,6 +15,7 @@ base_struct = struct('exper',expr, ...
 
 if isstr(path_estimates)
     load(path_estimates);
+    keys = params.keys;
 else
     estimates = path_estimates;
     keys = params.keys;

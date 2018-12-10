@@ -6,15 +6,16 @@
 % create a ne version of those with annotated outliers appended with '00'
 
 %% 
-work_folder = '/Users/yardenc/Documents/Experiments/Behavior/Data/CanaryData/Chondroitinase/llb11/Individual syllable spects/';
-orig_annotation = '/Users/yardenc/Documents/Experiments/Behavior/Data/CanaryData/Chondroitinase/llb11/llb11_annotation_Vika_initial_part_1.mat';
-orig_template = '/Users/yardenc/Documents/Experiments/Behavior/Data/CanaryData/Chondroitinase/llb11/llb11_templates_Vika_initial.mat';
+work_folder = '/Users/yardenc/Documents/Experiments/Behavior/Data/CanaryData/Chondroitinase/llb16/llb16_spects/';
+orig_annotation = '/Users/yardenc/Documents/Experiments/Behavior/Data/CanaryData/Chondroitinase/llb16/llb16_annotation_Alexa_initial.mat';
+orig_template = '/Users/yardenc/Documents/Experiments/Behavior/Data/CanaryData/Chondroitinase/llb16/llb16_templates_Alexa_initial.mat';
 cd(work_folder);
 outlier_prefix = 'output_syllable_spects_';
 spect_prefix = 'syllable_spects_';
 num_syls = 29;
 %% fix templates
 load(orig_template)
+num_syls = numel(templates.wavs);
 templates.wavs = [templates.wavs templates.wavs];
 for cnt = num_syls+1:2*num_syls
     templates.wavs(cnt).segType = templates.wavs(cnt).segType*100;
@@ -23,6 +24,7 @@ end
 [DIR,filename,ext]=fileparts(orig_template);
 new_template_file = fullfile(DIR,['outliers_' filename ext]);
 save(new_template_file,'templates');
+disp('fixed new templates');
 %% fix annotation
 load(orig_annotation);
 for cnt = 1:num_syls
@@ -41,5 +43,5 @@ end
 new_annotation_file = fullfile(DIR,['outliers_' filename ext]);
 save(new_annotation_file,'keys','elements');
 
-disp('done')
+disp('fixed new annotation')
 

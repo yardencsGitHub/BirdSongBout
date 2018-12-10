@@ -14,7 +14,10 @@ addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
 cd(workDIR);
 CreateWavsList(workDIR,1);
 CreateSpectrogramsFromWavs;
-
+%% 3: add manual annotation and create training set
+annotation_file = 
+template_file
+add_annotation_to_mat(workDIR,annotation_file,template_file);
 %%
 cd('/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/bird_6');
 path_to_annotation_file = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/bird_6/bird6_annotation.mat';
