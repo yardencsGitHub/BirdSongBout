@@ -489,7 +489,10 @@ function SongAnnotationGUI
             case 'p' %play sound
                time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
                soundsc(y(time_stamps >= tonset & time_stamps <= toffset),settings_params.FS);
-               
+            case 'c'
+               time_stamps = [1:numel(y)]/settings_params.FS -1/settings_params.FS;
+               [filename_tosave, pathname_tosave, ~] = uiputfile('*.wav', 'Enter file name');
+               audiowrite(fullfile(pathname_tosave,filename_tosave),y(time_stamps >= tonset & time_stamps <= toffset),settings_params.FS);
             case 'g' %update borders to threshold crossings
                 for syl_cnt = 1:numel(current_syllables) 
                         currpos = get_pos(syl_cnt);    
