@@ -59,7 +59,7 @@ for syltype = 1:n_syl
         fname = keys{filenum};
         loc = filenum;
         %phrases = return_phrase_times(elements{loc});
-        if isempty(elements{filenum}.segType)
+        if ~ismember(sylnum,elements{filenum}.segType)
             continue;
         end
         [y,fs] = audioread([fname(1:end-3) 'wav']);
@@ -81,6 +81,6 @@ for syltype = 1:n_syl
         %disp([filenum numel(elements)]);
     end
     outfile = fullfile(TargetDir,['syllable_spects_' num2str(sylnum) '.mat']);
-    save(outfile,'syllable_spects','-v6');
+    save(outfile,'syllable_spects','-v7.3');
     close(hf);
 end

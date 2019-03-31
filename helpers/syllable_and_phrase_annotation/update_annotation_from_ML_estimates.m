@@ -15,7 +15,8 @@ base_struct = struct('exper',expr, ...
 
 if isstr(path_estimates)
     load(path_estimates);
-    keys = params.keys;
+    %keys = params.keys; %uncomment if 'keys' is not part of the estimates
+    %file
 else
     estimates = path_estimates;
     keys = params.keys;
