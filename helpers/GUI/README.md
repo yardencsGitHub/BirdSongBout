@@ -27,7 +27,7 @@ Importantly, changes to settings in other windows will only take an effect when 
 ### Hotkeys
 * **u** - Update - all changes in the Settings, Time window, and Amplitude threshold panels will take place by pressing this hotkey in the main (Spectrogram) panel. For example, after moving the threshold the crossing points, marked by green and red lines (threshold crossing onset and offset) will move after updating.
 * **z,x** - Shift time axis left (z) and right (x). The threshold crossing points need to be recalculated (press 'u') 
-* **e** - Erase the current file - A Yes / No prompt will confirm that the current file (The one whose spectrogram is being worked on .. not the one highlighted in the settings dialog). Pressing Yes will remove the entry from the annotation file and the next entryu will be loaded. This is irreversible.
+* **e** - Erase the current file - A Yes / No prompt will confirm that the current file (The one whose spectrogram is being worked on .. not the one highlighted in the settings dialog). Pressing Yes will remove the entry from the annotation file and the next entry will be loaded. This is irreversible.
 * **r** - Update maps - This updates the colors in the threshold and time window panels. Not really useful, but nice to have.
 * **t** - Tag current selected segment - The tag, chosen in the settings panel will be applied to the currently selected segment. This will have no effect if the selected segment is outside the currently visible time window (in the spectrogram panel)
 * **p** - Play currently visible spectrogram.
