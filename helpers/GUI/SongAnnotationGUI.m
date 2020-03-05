@@ -366,6 +366,19 @@ function SongAnnotationGUI
                 hgclose(h_map);  
                 close(h_params);
                 
+            case 'w'
+                button = questdlg(['Do you want to save before switching?'],'Quitters never win. Winners never quit!','Yes','No','No');
+                if strcmp(button,'Yes')
+                    save(fullfile(DIR,annotation_filename),'keys','elements');
+                    templates = params_handles.show_button.UserData;
+                    save(fullfile(DIR,template_filename),'templates');
+                end
+                hgclose(hf);
+                hgclose(h_temp);
+                hgclose(h_map);  
+                close(h_params);
+                SongAnnotationGUI;
+                
                 
             case 'e' %delete entry from keys
                 current_entry = file_loc_in_keys;

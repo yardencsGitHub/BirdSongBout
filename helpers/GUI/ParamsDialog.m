@@ -572,5 +572,6 @@ handles.annotation_filename.String = tmp_ann_fname;
 handles.templates_filename.String = tmp_tmp_fname;
 handles.choose_dir.UserData = {tmpDIR tmp_ann_fname tmp_tmp_fname};
 handles.choose_dir.Enable = 'off'; 
+handles.choose_dir.Visible = 'off'; 
 uiresume(handles.figure1);
  
