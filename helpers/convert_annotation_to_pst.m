@@ -71,9 +71,19 @@ end
 for i = 1:numel(join_entries)
     syllables = setdiff(syllables,join_entries{i}(2:end));
 end
-syllables = [-1000 1000 syllables];
+edge_syms = [];
+if ~isempty(onset_sym) 
+    edge_syms = [-1000];
+end
+if ~isempty(offset_sym) 
+    edge_syms = [edge_syms 1000];
+end
+
+syllables = [edge_syms syllables];
+AlphaNumeric = [onset_sym offset_sym AlphaNumeric];
 
 temp = [];
+actual_syllables = [];
 for fnum = 1:numel(keys)
     if ~isempty(ignore_dates)
         if ismember(return_date_num(keys{fnum}),datenum(ignore_dates))
@@ -96,24 +106,32 @@ for fnum = 1:numel(keys)
         phrases = return_phrase_times(element);
         
         currDATA = [onset_sym AlphaNumeric(syllables == phrases.phraseType(1))];
+        currsyls = [-1000 phrases.phraseType(1)];
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                currsyls = [currsyls phrases.phraseType(phrasenum + 1)];
             else
-                if (numel(currDATA) > min_phrases)
+                if (numel(currDATA) >= min_phrases)
                     DATA = {DATA{:} [currDATA offset_sym]};
+                    actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
                 end
                 currDATA = [onset_sym AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
-           
+                currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
             end  
         end
-        if (numel(currDATA) > min_phrases)
+        if (numel(currDATA) >= min_phrases)
             DATA = {DATA{:} [currDATA offset_sym]};
+            actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
         end
     catch em
         '8'
     end
 end
+actual_syllables = unique(actual_syllables);
+no_show_syllables = setdiff(syllables,actual_syllables);
+syllables(ismember(syllables,no_show_syllables)) = [];
+
 end
 function res = return_date_num(filestr)
     tokens = regexp(filestr,'_','split');
