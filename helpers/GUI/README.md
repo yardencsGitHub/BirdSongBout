@@ -31,6 +31,7 @@ Importantly, changes to settings in other windows will only take an effect when 
 * **r** - Update maps - This updates the colors in the threshold and time window panels. Not really useful, but nice to have.
 * **t** - Tag current selected segment - The tag, chosen in the settings panel will be applied to the currently selected segment. This will have no effect if the selected segment is outside the currently visible time window (in the spectrogram panel)
 * **p** - Play currently visible spectrogram.
+* **c** - Save the audio in the current spectrogram to a file (you get to pick the name).
 * **s** - Tag a flexible segment - This is very useful. The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range get the tag that is currently chosen in the setting window.
 * **a** - Add segment - A new segment will be created in the range, chosen by clicking and dragging the mouse. The new segment cannot overlap with others and will get the tag **'-1'** that indicates an un-annotated segment. 
 * **d** - Delete segments - The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range are deleted.
@@ -41,6 +42,7 @@ Importantly, changes to settings in other windows will only take an effect when 
 * **l** - Label - This updates the sample of the currently chosen tag. The currently chosen segment will be saved in the templates file only if it has the same tag as the currently chosen tag in the settings panel.
 * **n** - New entry - Changes will be saved and either the next entry will be opened or the entry, chosen in the settings panel.
 * **q** - Quit - A Yes / No prompt allows choosing to save entries and settings before closing all windows.
+* **w** - Switch to a new annotation (of the same or other bird). Like **q** but the GUI will restart and let you start with a different annotation.
 ### Mouse operations
 Some operations are done with the mouse:
 * **Selecting a segment** - Clicking on a segment in the spectrogram panel will *Select* it. The rectangle that marks the segment will change to an active rectangle.
