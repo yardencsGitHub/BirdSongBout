@@ -1,8 +1,19 @@
-function SongAnnotationGUI
+function SongAnnotationGUI(varargin)
    
+    
+
     settings_file_path = pwd; %'/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI/';
     %settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
     settings_file_name = 'BoutAnnotation_settings_file.mat';
+    
+    nparams=length(varargin);
+    for i=1:2:nparams
+        switch lower(varargin{i})
+            case 'settings_file_path'
+                settings_file_path=varargin{i+1};
+        end
+    end
+    
     full_setting_path = fullfile(settings_file_path,settings_file_name);
     
     if exist(fullfile(settings_file_path,settings_file_name))
@@ -377,7 +388,7 @@ function SongAnnotationGUI
                 hgclose(h_temp);
                 hgclose(h_map);  
                 close(h_params);
-                SongAnnotationGUI;
+                SongAnnotationGUI('settings_file_path',settings_file_path);
                 
                 
             case 'e' %delete entry from keys
