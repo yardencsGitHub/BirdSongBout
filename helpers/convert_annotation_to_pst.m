@@ -1,4 +1,4 @@
-function [DATA, syllables] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, syllables, file_numbers] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -16,7 +16,7 @@ AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 onset_sym = '1';
 offset_sym = '2';
 
-MaxSep = 0.25; % maximal phrase separation within a bout (sec)
+MaxSep = 0.5; % maximal phrase separation within a bout (sec)
 
 nparams=length(varargin);
 for i=1:2:nparams
@@ -32,6 +32,7 @@ end
 
 if ~exist(path_to_annotation_file)
     DATA = [];
+    file_numbers = [];
     display(['Could not open annotation file: ' path_to_annotation_file])
     return;
 end
@@ -61,6 +62,7 @@ end
 load(path_to_annotation_file);
 syllables = [];
 DATA = {};
+file_numbers = [];
 for fnum = 1:numel(keys)  
     syllables = unique([syllables unique(elements{fnum}.segType)']);
 end
@@ -114,6 +116,7 @@ for fnum = 1:numel(keys)
             else
                 if (numel(currDATA) >= min_phrases)
                     DATA = {DATA{:} [currDATA offset_sym]};
+                    file_numbers = [file_numbers fnum];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
                 end
                 currDATA = [onset_sym AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
@@ -122,10 +125,11 @@ for fnum = 1:numel(keys)
         end
         if (numel(currDATA) >= min_phrases)
             DATA = {DATA{:} [currDATA offset_sym]};
+            file_numbers = [file_numbers fnum];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
         end
     catch em
-        '8'
+        '8';
     end
 end
 actual_syllables = unique(actual_syllables);

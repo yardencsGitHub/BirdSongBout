@@ -12,7 +12,7 @@ function [hndls, syls, degrees, probs, freqs, DATA] = Create_PST_from_annotation
 % 3022), 'min_phrases' sets the minimal # of phrases per song bout to
 % include
 %% repos. requirements: pst, BirdSongBout
-addpath(genpath('/Users/yardenc/Documents/GitHub/pst'),'-end');
+addpath(genpath('/Users/yardenc/Documents/GitHub/pst_yc'),'-end'); %_yc
 addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
 global colors color_tags;
 %colors = [];
@@ -28,9 +28,15 @@ offset_sym = '2';
 title_fsize = 8;
 slice_fsize = 8;
 L = 5;
+MaxSep = 0.5;
+p_min = 0.0073; %0.005;
+p_smoothing = 1; %0
 nparams=length(varargin);
+randomsample = 0;
 for i=1:2:nparams
 	switch lower(varargin{i})
+        case 'maxsep'
+			MaxSep=varargin{i+1};
 		case 'ignore_dates'
 			ignore_dates=varargin{i+1};
         case 'join_entries'
@@ -51,21 +57,33 @@ for i=1:2:nparams
             slice_fsize = varargin{i+1};
         case 'l'
             L = varargin{i+1};
+        case 'p_min'
+            p_min = varargin{i+1};
+        case 'p_smoothing'
+            p_smoothing = varargin{i+1};
+        case 'randomsample'
+            randomsample = varargin{i+1};
     end
 end
 
 %%
 [DATA, syls] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,... 
-     include_zero,min_phrases,'onset_sym',onset_sym,'offset_sym',offset_sym);
-%rp = randperm(numel(DATA));
-%DATA = DATA(rp(1:ceil(0.9*numel(rp))));
+     include_zero,min_phrases,'onset_sym',onset_sym,'offset_sym',offset_sym,'maxsep',MaxSep);
+if randomsample > 0
+    rp = randperm(numel(DATA));
+    DATA = DATA(rp(1:randomsample));
+end
 disp(['# of DATA strings: ' num2str(numel(DATA))]); 
 [F_MAT ALPHABET N PI]=pst_build_trans_mat(DATA,L);
-TREE = pst_learn(F_MAT,ALPHABET,N,'L',L);
+TREE = pst_learn(F_MAT,ALPHABET,N,'L',L,'p_smoothing',p_smoothing,'p_min',p_min);
 %%
 syl_labels = mat2cell(syls',ones(numel(syls),1),1);
 load(fullfile('/Users/yardenc/Documents/Projects/Cohen2017_tf_segmentation_annotation/Code','pie_colors.mat'));
-colors = colors(1:numel(syls),:);
+if numel(syls) <= size(colors,1)
+    colors = colors(1:numel(syls),:);
+else
+    colors = distinguishable_colors(numel(syls),'w');
+end
 color_tags = syls;
 %%
 hndls = [];
