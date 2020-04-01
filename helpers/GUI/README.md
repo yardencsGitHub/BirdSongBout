@@ -1,11 +1,16 @@
 # A Matlab GUI for manual sound annotation and segmentation
 This is an alpha version of a simple and keyboard-interface based tool for sound segmentation and annotation. I'm using it to create training sets for my [automated algorithm](https://github.com/yardencsGitHub/tf_syllable_segmentation_annotation), used in parsing canary song files.
 ## Running this tool
-This tool runs on a single folder of WAV files that are sampled at the same rate. (Mine are sampled at 48000Hz). To run the GUI for the first time in a folder run the main matlab script **SingleSequenceManual(path_to_WAV_folder,'','')**. Set **path_to_WAV_folder** to be the full path to the folder that contains the WAV files. **Note:** the code creates a settings file and currently the folder that contains that file needs to be indicated within the code itself (first lines of SingleSequenceManual.m). 
-During the first run you will name two files - the file that contains the annotations (annotation_file_name.mat) and the file that contains the syllable templates (template_file_name.mat). In future runs it is possible to choose those files by running **SingleSequenceManual(path_to_WAV_folder,'annotation_file_name.mat','template_file_name.mat')**.
-### Warning: Possible user-created annotation error
-It is possible to drag segments and make them overlap or exceed the edges of the entire sound file. This is not prevented in the current version and will create a corrupted annotation file.
+This tool runs on a single folder of WAV files that are sampled at the same rate. (Mine are sampled at 48000Hz). To run the GUI just run the main matlab script **SongAnnotationGUI**. This needs to done from the GUI's fodlder. If you want to run from another folder just add the GUI's folder to the matlab path and run **SongAnnotationGUI('settings_file_path','/path/to/where/the/GUI/is/found')**.  
+
+**Note:** the code manages a settings file called 'BoutAnnotation_settings_file.mat'. This file must exist for the GUI to function. 
 ## Workflow
+### Choosing a dataset
+When the GUI starts, a parameters dialog box appears.
+![FirstDlgImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/FirstDlg.png)
+Press the [...] button on the top right corner to start working. The program will ask you to choose a working directory.
+This directory needs to contain all your wav files and annotation files. After choosing a directory you can choose to make new annotation files (the file that contains the annotations and the file that contains the syllable templates) or pick existing ones.
+
 Three panels open after running the GUI or after starting to work on a new WAV file (see below):
 ### Settings and parameters dialog
 ![DlgImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/DlgFig.png)
@@ -13,7 +18,8 @@ Three panels open after running the GUI or after starting to work on a new WAV f
 ![MapImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/MapFig.png)
 ### Amplitude threshold 
 ![ThrImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/ThrFig.png)
-Set the threshold by dragging the line up and down and then press ENTER. A new panel will appear:
+Set the threshold by dragging the line up and down and then press ENTER. If you don't see a threshold line don't despair. It is possible to pan the iamage and find the threshold. Don't forget to later cancel the panning tool so you can move the line.
+A new panel will appear:
 ### The spectrogram window
 ![SpecImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/SpecFig.png)
 This panel is the main focus in working on each file and all keyboard hotkeys, listed below, function only when this panel is selected.
@@ -21,10 +27,11 @@ Importantly, changes to settings in other windows will only take an effect when 
 ### Hotkeys
 * **u** - Update - all changes in the Settings, Time window, and Amplitude threshold panels will take place by pressing this hotkey in the main (Spectrogram) panel. For example, after moving the threshold the crossing points, marked by green and red lines (threshold crossing onset and offset) will move after updating.
 * **z,x** - Shift time axis left (z) and right (x). The threshold crossing points need to be recalculated (press 'u') 
-* **e** - Erase the current file - A Yes / No prompt will confirm that the current file (The one whose spectrogram is being worked on .. not the one highlighted in the settings dialog). Pressing Yes will remove the entry from the annotation file and the next entryu will be loaded. This is irreversible.
+* **e** - Erase the current file - A Yes / No prompt will confirm that the current file (The one whose spectrogram is being worked on .. not the one highlighted in the settings dialog). Pressing Yes will remove the entry from the annotation file and the next entry will be loaded. This is irreversible.
 * **r** - Update maps - This updates the colors in the threshold and time window panels. Not really useful, but nice to have.
 * **t** - Tag current selected segment - The tag, chosen in the settings panel will be applied to the currently selected segment. This will have no effect if the selected segment is outside the currently visible time window (in the spectrogram panel)
 * **p** - Play currently visible spectrogram.
+* **c** - Save the audio in the current spectrogram to a file (you get to pick the name).
 * **s** - Tag a flexible segment - This is very useful. The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range get the tag that is currently chosen in the setting window.
 * **a** - Add segment - A new segment will be created in the range, chosen by clicking and dragging the mouse. The new segment cannot overlap with others and will get the tag **'-1'** that indicates an un-annotated segment. 
 * **d** - Delete segments - The mouse is used to choose a time segment in the Spectrogram panel and all segments in the chosen range are deleted.
@@ -35,6 +42,7 @@ Importantly, changes to settings in other windows will only take an effect when 
 * **l** - Label - This updates the sample of the currently chosen tag. The currently chosen segment will be saved in the templates file only if it has the same tag as the currently chosen tag in the settings panel.
 * **n** - New entry - Changes will be saved and either the next entry will be opened or the entry, chosen in the settings panel.
 * **q** - Quit - A Yes / No prompt allows choosing to save entries and settings before closing all windows.
+* **w** - Switch to a new annotation (of the same or other bird). Like **q** but the GUI will restart and let you start with a different annotation.
 ### Mouse operations
 Some operations are done with the mouse:
 * **Selecting a segment** - Clicking on a segment in the spectrogram panel will *Select* it. The rectangle that marks the segment will change to an active rectangle.
@@ -54,3 +62,5 @@ The following can be done in the Settings and parameters panel:
   * Min Gap, Min Syl - These set the minimal gap between syllables and the minimal syllable durations. These parameters affect the threshold crossing boundaries and will update upter pressing 'u' in the Spectrogram panel.
   * CAXIS - sets the color axis in the spectrogram window. Updates after pressing 'u'.
 
+### Warning: Possible user-created annotation error
+It is possible to drag segments and make them overlap or exceed the edges of the entire sound file. This is not prevented in the current version and will create a corrupted annotation file.

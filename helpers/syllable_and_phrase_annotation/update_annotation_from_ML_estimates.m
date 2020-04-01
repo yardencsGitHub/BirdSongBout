@@ -32,7 +32,7 @@ elements = {};
 tempkeys = {};
 dt = 1/3.692307692307692e+02;
 trill_syllables = [];
-max_zero_bins_to_ignore = 2;
+max_zero_bins_to_ignore = 1; %was 2
 is_new = 1;
 
 
