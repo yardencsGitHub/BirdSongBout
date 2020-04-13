@@ -12,7 +12,7 @@ function [hndls, syls, degrees, probs, freqs, DATA] = Create_PST_from_annotation
 % 3022), 'min_phrases' sets the minimal # of phrases per song bout to
 % include
 %% repos. requirements: pst, BirdSongBout
-addpath(genpath('/Users/yardenc/Documents/GitHub/pst_yc'),'-end'); %_yc
+addpath(genpath('/Users/yardenc/Documents/GitHub/pst'),'-end'); %_yc
 addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
 global colors color_tags;
 %colors = [];

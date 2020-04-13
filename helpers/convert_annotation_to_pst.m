@@ -114,7 +114,7 @@ for fnum = 1:numel(keys)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
                 currsyls = [currsyls phrases.phraseType(phrasenum + 1)];
             else
-                if (numel(currDATA) >= min_phrases)
+                if (numel(currDATA) > min_phrases)
                     DATA = {DATA{:} [currDATA offset_sym]};
                     file_numbers = [file_numbers fnum];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
@@ -123,7 +123,7 @@ for fnum = 1:numel(keys)
                 currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
             end  
         end
-        if (numel(currDATA) >= min_phrases)
+        if (numel(currDATA) > min_phrases)
             DATA = {DATA{:} [currDATA offset_sym]};
             file_numbers = [file_numbers fnum];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
