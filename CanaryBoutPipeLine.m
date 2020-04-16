@@ -74,14 +74,14 @@ addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
 %path_to_annotation = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring - AprMay2018/llb3_annotation_Mar_2019_emily.mat';
 %path_to_annotation = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/llb3 - Spring2019/llb3_annotation_May_2019_Haley.mat';
 %path_to_annotation = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1/HandAnnotation_part1_lb4483_Vika.mat';
-path_to_annotation ='/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/part 1/rb4459_HandAnnotation_part1_2019_Haley.mat';
+path_to_annotation ='/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/part1_lb4483_annotation_Feb_2020_Vika.mat';
 %path_to_audio = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/llb3 - Spring2019';
 %path_to_audio = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1';
-path_to_audio = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/part 1';
+path_to_audio = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1';
 %/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring - AprMay2018';
 %path_to_target = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring2019_syllable_snippets';
 %path_to_target = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/SyllableSpects';
-path_to_target = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/SyllableSpects';
+path_to_target = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/SyllableSpects';
 Prepare_individual_syllable_spects(path_to_annotation,path_to_audio,path_to_target);
 
 %% check for outliers
@@ -90,10 +90,11 @@ Prepare_individual_syllable_spects(path_to_annotation,path_to_audio,path_to_targ
 % Which is found in: /Users/yardenc/Documents/GitHub/BirdSongBout/helpers
 % run Add_outliers_to_annotation.m
 %orig_template = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1/HandAnnotation_part1_lb4483_template.mat';
-orig_template = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/part 1/rb4459_HandAnnotation_part1_template_Haley.mat';
+orig_template = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/part1_lb4483_template_Feb_2020.mat';
+%'/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/part 1/rb4459_HandAnnotation_part1_template_Haley.mat';
 
 %work_folder = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/SyllableSpects';
-work_folder = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/SyllableSpects';
+work_folder = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/SyllableSpects';
 orig_annotation = path_to_annotation;
 Add_outliers_to_annotation(work_folder, orig_annotation,orig_template)
 
