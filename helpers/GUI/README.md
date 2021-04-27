@@ -19,7 +19,7 @@ Three panels open after running the GUI or after starting to work on a new WAV f
 ![MapImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/MapFig.png)
 ### Amplitude threshold 
 ![ThrImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/ThrFig.png)
-Set the threshold by dragging the line up and down and then press ENTER. If you don't see a threshold line don't despair. It is possible to pan the iamage and find the threshold. Don't forget to later cancel the panning tool so you can move the line.
+Set the threshold by dragging the line up and down and then press ENTER. If you don't see a threshold line don't despair. It is possible to pan the image and find the threshold. Don't forget to later cancel the panning tool so you can move the line.
 A new panel will appear:
 ### The spectrogram window
 ![SpecImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/SpecFig.png)
