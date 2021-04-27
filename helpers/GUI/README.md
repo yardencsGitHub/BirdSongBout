@@ -8,6 +8,7 @@ This tool runs on a single folder of WAV files that are sampled at the same rate
 ### Choosing a dataset
 When the GUI starts, a parameters dialog box appears.
 ![FirstDlgImage](https://github.com/yardencsGitHub/BirdSongBout/blob/master/helpers/GUI/img/FirstDlg.png)
+
 Press the [...] button on the top right corner to start working. The program will ask you to choose a working directory.
 This directory needs to contain all your wav files and annotation files. After choosing a directory you can choose to make new annotation files (the file that contains the annotations and the file that contains the syllable templates) or pick existing ones.
 
