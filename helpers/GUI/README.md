@@ -1,7 +1,7 @@
 # A Matlab GUI for manual sound annotation and segmentation
 This is an alpha version of a simple and keyboard-interface based tool for sound segmentation and annotation. I'm using it to create training sets for my [automated algorithm](https://github.com/yardencsGitHub/tf_syllable_segmentation_annotation), used in parsing canary song files.
 ## Running this tool
-This tool runs on a single folder of WAV files that are sampled at the same rate. (Mine are sampled at 48000Hz). To run the GUI just run the main matlab script **SongAnnotationGUI**. This needs to done from the GUI's fodlder. If you want to run from another folder just add the GUI's folder to the matlab path and run **SongAnnotationGUI('settings_file_path','/path/to/where/the/GUI/is/found')**.  
+This tool runs on a single folder of WAV files that are sampled at the same rate. (Mine are sampled at 48000Hz). To run the GUI just run the main matlab script **SongAnnotationGUI**. This needs to done from the GUI's folder. If you want to run from another folder just add the GUI's folder to the matlab path and run **SongAnnotationGUI('settings_file_path','/path/to/where/the/GUI/is/found')**.  
 
 **Note:** the code manages a settings file called 'BoutAnnotation_settings_file.mat'. This file must exist for the GUI to function. 
 ## Workflow
