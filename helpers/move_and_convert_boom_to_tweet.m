@@ -1,4 +1,4 @@
-function move_and_convert_boom_to_tweet(birdname,source_dir,target_dir)
+function move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,datetime_tokenizer_func,num_counter_digits)
 %%
 % This script assumes that the folder 'source_dir' has a set of subfolders
 % with the names that match recording dates. These subfolders must be in
@@ -22,11 +22,15 @@ for dirnum = 1:numel(dirs)
         FILES = dir(fullfile(source_dir,dirs(dirnum).name,'chop_data','wav','*.wav'));
         for fnum = 1:numel(FILES)
             fname = FILES(fnum).name;
-            tokens = regexp(fname,'_','split');
-            tokens = regexp(tokens{2},'-','split');
-            tokens = regexp(tokens{1},'\.','split');
-
-            target_fname = [birdname '_' sprintf('%04d',file_cnt) '_' char(join(tokens(2:6),'_')) '.wav'];
+            if isempty(datetime_tokenizer_func)
+                tokens = regexp(fname,'_','split');
+                tokens = regexp(tokens{2},'-','split');
+                tokens = regexp(tokens{1},'\.','split');
+                tokens = tokens(2:6);
+            else
+                tokens = datetime_tokenizer_func(fname);
+            end
+            target_fname = [birdname '_' sprintf(['%0' num2str(num_counter_digits) 'd'],file_cnt) '_' char(join(tokens,'_')) '.wav'];
             copyfile(fullfile(source_dir,dirs(dirnum).name,'chop_data','wav',fname),...
                 fullfile(target_dir,target_fname));
             file_cnt = file_cnt + 1;
