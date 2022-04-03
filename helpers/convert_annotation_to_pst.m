@@ -15,7 +15,7 @@ function [DATA, syllables, file_numbers] = convert_annotation_to_pst(path_to_ann
 AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 onset_sym = '1';
 offset_sym = '2';
-
+orig_syls = [];
 MaxSep = 0.5; % maximal phrase separation within a bout (sec)
 
 nparams=length(varargin);
@@ -27,6 +27,8 @@ for i=1:2:nparams
             onset_sym = varargin{i+1};
         case 'offset_sym'
             offset_sym = varargin{i+1};
+        case 'syllables'
+            orig_syls = varargin{i+1};
     end
 end
 
@@ -60,18 +62,23 @@ if flag == 1
 end
     
 load(path_to_annotation_file);
-syllables = [];
+
 DATA = {};
 file_numbers = [];
-for fnum = 1:numel(keys)  
-    syllables = unique([syllables unique(elements{fnum}.segType)']);
-end
-syllables = setdiff(syllables,ignore_entries);
-if (include_zero == 0)
-    syllables = setdiff(syllables,0);
-end
-for i = 1:numel(join_entries)
-    syllables = setdiff(syllables,join_entries{i}(2:end));
+if isempty(orig_syls)
+    syllables = [];
+    for fnum = 1:numel(keys)  
+        syllables = unique([syllables unique(elements{fnum}.segType)']);
+    end
+    syllables = setdiff(syllables,ignore_entries);
+    if (include_zero == 0)
+        syllables = setdiff(syllables,0);
+    end
+    for i = 1:numel(join_entries)
+        syllables = setdiff(syllables,join_entries{i}(2:end));
+    end
+else
+    syllables = orig_syls;
 end
 edge_syms = [];
 if ~isempty(onset_sym) 
