@@ -32,6 +32,9 @@ for key_indx = 2:numel(input_keys)
         last_song_duration = input_elements{key_indx - 1}.segFileEndTimes(end);
         curr_time_addition = curr_time_addition + last_song_duration + min_gap + time_buffer;
         % get the file time from its name
+        if key_indx == 2874
+            's';
+        end
         tokens = split(input_keys{key_indx},'.');
         tokens = split(tokens{1},'_');
         if numel(tokens) == 7
