@@ -1,4 +1,4 @@
-function [DATA, syllables, file_numbers, file_day_indices] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, syllables, file_numbers] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -93,9 +93,7 @@ AlphaNumeric = [onset_sym offset_sym AlphaNumeric];
 
 temp = [];
 actual_syllables = [];
-file_date_nums = [];
 for fnum = 1:numel(keys)
-    curr_date_num = return_date_num(keys{fnum});
     if ~isempty(ignore_dates)
         if ismember(return_date_num(keys{fnum}),datenum(ignore_dates))
             '4';
@@ -126,7 +124,6 @@ for fnum = 1:numel(keys)
                 if (numel(currDATA) > min_phrases)
                     DATA = {DATA{:} [currDATA offset_sym]};
                     file_numbers = [file_numbers fnum];
-                    file_date_nums = [file_date_nums; curr_date_num];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
                 end
                 currDATA = [onset_sym AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
@@ -136,7 +133,6 @@ for fnum = 1:numel(keys)
         if (numel(currDATA) > min_phrases)
             DATA = {DATA{:} [currDATA offset_sym]};
             file_numbers = [file_numbers fnum];
-            file_date_nums = [file_date_nums; curr_date_num];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
         end
     catch em
@@ -146,11 +142,7 @@ end
 actual_syllables = unique(actual_syllables);
 no_show_syllables = setdiff(syllables,actual_syllables);
 syllables(ismember(syllables,no_show_syllables)) = [];
-unique_file_date_nums = unique(file_date_nums);
-file_day_indices = [];
-for fnum = 1:numel(file_date_nums)
-    file_day_indices = [file_day_indices; find(unique_file_date_nums == file_date_nums(fnum))];
-end
+
 end
 function res = return_date_num(filestr)
     tokens = regexp(filestr,'_','split');
