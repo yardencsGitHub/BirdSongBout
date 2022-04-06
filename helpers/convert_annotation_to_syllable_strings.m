@@ -1,4 +1,4 @@
-function [DATA, syllables, file_numbers, file_day_indices] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_indices] = convert_annotation_to_syllable_strings(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -63,7 +63,7 @@ end
     
 load(path_to_annotation_file);
 
-DATA = {};
+DATA = {}; durations = {}; gaps = {}; phrase_idxs = {};
 file_numbers = [];
 if isempty(orig_syls)
     syllables = [];
@@ -115,29 +115,50 @@ for fnum = 1:numel(keys)
     
     try
         phrases = return_phrase_times(element);
+        curr_mids = (element.segFileEndTimes + element.segFileStartTimes)/2;
+        curr_durations = (element.segFileEndTimes - element.segFileStartTimes);
+        curr_gaps = (element.segFileStartTimes(2:end) - element.segFileEndTimes(1:end-1));
         
-        currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
         currsyls = [-1000 phrases.phraseType(1)];
+        locs = find(curr_mids > phrases.phraseFileStartTimes(1) & curr_mids < phrases.phraseFileEndTimes(1));
+        currDATA = [repmat(AlphaNumeric(syllables == phrases.phraseType(1)),1,numel(locs))];
+        curr_idxs = ones(1,numel(locs));
+        curr_locs = [locs];
+        curr_phrase_idx = 1;
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
-                currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                locs = find(curr_mids > phrases.phraseFileStartTimes(phrasenum + 1) & curr_mids < phrases.phraseFileEndTimes(phrasenum + 1));
+                currDATA = [currDATA repmat(AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1)),1,numel(locs))];
                 currsyls = [currsyls phrases.phraseType(phrasenum + 1)];
+                curr_idxs = [curr_idxs ones(1,numel(locs))*(curr_phrase_idx + 1)];
+                curr_phrase_idx = curr_phrase_idx + 1;
+                curr_locs = [curr_locs locs];
             else
-                if (numel(currDATA) >= min_phrases)
+                if (numel(unique(curr_idxs)) >= min_phrases)
                     DATA = {DATA{:} [onset_sym currDATA offset_sym]};
                     file_numbers = [file_numbers fnum];
                     file_date_nums = [file_date_nums; curr_date_num];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
+                    durations = {durations{:} curr_durations(curr_locs)}; 
+                    gaps = {gaps{:} curr_gaps(curr_locs(1:end-1))}; 
+                    phrase_idxs = {phrase_idxs{:} curr_idxs};
                 end
-                currDATA = [AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                locs = find(curr_mids > phrases.phraseFileStartTimes(phrasenum + 1) & curr_mids < phrases.phraseFileEndTimes(phrasenum + 1));
+                currDATA = [repmat(AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1)),1,numel(locs))];
+                curr_idxs = [ones(1,numel(locs))];
+                curr_phrase_idx = 1;
+                curr_locs = [locs];
                 currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
             end  
         end
-        if (numel(currDATA) >= min_phrases)
+        if (numel(unique(curr_idxs)) >= min_phrases)
             DATA = {DATA{:} [onset_sym currDATA offset_sym]};
             file_numbers = [file_numbers fnum];
             file_date_nums = [file_date_nums; curr_date_num];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
+            durations = {durations{:} curr_durations(curr_locs)}; 
+            gaps = {gaps{:} curr_gaps(curr_locs(1:end-1))}; 
+            phrase_idxs = {phrase_idxs{:} curr_idxs};
         end
     catch em
         '8';
