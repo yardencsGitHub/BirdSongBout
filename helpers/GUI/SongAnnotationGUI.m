@@ -420,7 +420,7 @@ function SongAnnotationGUI(varargin)
                     [y,settings_params.FS] = audioread(fullfile(DIR,filename));
                     tmin = 0;
                     tmax = numel(y)/settings_params.FS;
-                    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+                    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS,'reassigned');
                     if ~isempty(elements{file_loc_in_keys}.segType)
                         phrases = return_phrase_times(elements{file_loc_in_keys});
                     else
