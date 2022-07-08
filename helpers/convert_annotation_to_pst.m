@@ -1,4 +1,4 @@
-function [DATA, syllables, file_numbers, file_day_indices] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, syllables, file_numbers, file_day_indices, song_durations] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -94,6 +94,7 @@ AlphaNumeric = [onset_sym offset_sym AlphaNumeric];
 temp = [];
 actual_syllables = [];
 file_date_nums = [];
+song_durations = [];
 for fnum = 1:numel(keys)
     curr_date_num = return_date_num(keys{fnum});
     if ~isempty(ignore_dates)
@@ -118,6 +119,7 @@ for fnum = 1:numel(keys)
         
         currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
         currsyls = [-1000 phrases.phraseType(1)];
+        curr_song_onset = phrases.phraseFileStartTimes(1);
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
@@ -128,9 +130,11 @@ for fnum = 1:numel(keys)
                     file_numbers = [file_numbers fnum];
                     file_date_nums = [file_date_nums; curr_date_num];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
+                    song_durations = [song_durations phrases.phraseFileEndTimes(phrasenum) - curr_song_onset];
                 end
                 currDATA = [AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
                 currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
+                curr_song_onset = phrases.phraseFileStartTimes(phrasenum + 1);
             end  
         end
         if (numel(currDATA) >= min_phrases)
@@ -138,6 +142,7 @@ for fnum = 1:numel(keys)
             file_numbers = [file_numbers fnum];
             file_date_nums = [file_date_nums; curr_date_num];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
+            song_durations = [song_durations phrases.phraseFileEndTimes(end) - curr_song_onset];
         end
     catch em
         '8';
