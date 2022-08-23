@@ -9,6 +9,19 @@ function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_
 %   to treat as belonging to the same state. The lists shouldn't overlap
 %   (incl. with the ignored lables)
 %   include_zero - should 0 be a label?
+% 
+% Optional field (default),value pairs:
+%   onset_sym ('1') - set this character as the beginning of each song
+%   offset_sym ('2') - set this character as the end of each song
+%   orig_syls ([]) - determine which syllables to look for and ignore
+%   others. WARNING: if the annotation file includes syllables with tags
+%   that are not joined or ignored and not appearing in this vector then
+%   the results will be ofsetted and corrupted.
+%   MaxSep (0.5) - maximal phrase separation within a bout (sec)
+%   calc_brainard ('') - calculate Michael Brainard stype per-syllable
+%   acoustic features using the wav files in this folder (string)
+%   calc_tchernichovski ('') - calculate Ofer Tchernichovski stype per-syllable
+%   acoustic features using the wav files in this folder (string)
 %
 % Output:
 %   DATA - a cell array of strings - one character per syllable
@@ -194,6 +207,9 @@ for fnum = 1:numel(keys)
         currsyls = [-1000 phrases.phraseType(1)];
         locs = find(curr_mids > phrases.phraseFileStartTimes(1) & curr_mids < phrases.phraseFileEndTimes(1));
         currDATA = [repmat(AlphaNumeric(syllables == phrases.phraseType(1)),1,numel(locs))];
+        if ~ismember(phrases.phraseType(1),syllables)
+            warning(['Syllable number ' num2str(phrases.phraseType(1)) ' does not exist in valid syllables. Results may be corrupt']);
+        end
         curr_idxs = ones(1,numel(locs));
         curr_locs = [locs];
         curr_phrase_idx = 1;
@@ -201,6 +217,9 @@ for fnum = 1:numel(keys)
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 locs = find(curr_mids > phrases.phraseFileStartTimes(phrasenum + 1) & curr_mids < phrases.phraseFileEndTimes(phrasenum + 1));
                 currDATA = [currDATA repmat(AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1)),1,numel(locs))];
+                if ~ismember(phrases.phraseType(phrasenum + 1),syllables)
+                    warning(['Syllable number ' num2str(phrases.phraseType(phrasenum + 1)) ' does not exist in valid syllables. Results may be corrupt']);
+                end
                 currsyls = [currsyls phrases.phraseType(phrasenum + 1)];
                 curr_idxs = [curr_idxs ones(1,numel(locs))*(curr_phrase_idx + 1)];
                 curr_phrase_idx = curr_phrase_idx + 1;
