@@ -1,4 +1,6 @@
 function new_phrases = deal_with_time_gaps(phrases,max_phrase_gap)
+% This function takes the struct 'phrases' and adds a -1000,1000 to the
+% beginning and end as well as to mark any gap larger than max_phrase_gap
     if numel(phrases.phraseType) == 0
         new_phrases = phrases;
         return;
