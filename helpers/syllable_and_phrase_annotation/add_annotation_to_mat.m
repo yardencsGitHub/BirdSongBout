@@ -1,4 +1,6 @@
 function add_annotation_to_mat(DIR,annotation_file,template_file)
+% This function adds the variable 'labels', containing the labeled time
+% bins, to each spectrogram .mat file
 cd(DIR);
 if ~exist('annotated','dir')
     mkdir('annotated');

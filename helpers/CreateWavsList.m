@@ -1,8 +1,10 @@
-function CreateWavsList(DIR,first_file)
+function wavs = CreateWavsList(DIR,first_file)
 %% create the list of wav files to convert to matlab spectrograms
 % Inputs:
 %       DIR - the directory to work in
 %       first_file  - the first file number
+% Output:
+%   wavs: the list of file names as struct.
 keysinfile = 'wavs_list';
 cd(DIR);
 FILES = dir('*.wav');

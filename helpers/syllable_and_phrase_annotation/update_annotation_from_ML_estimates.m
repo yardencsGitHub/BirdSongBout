@@ -1,5 +1,5 @@
 function [elements, keys] = update_annotation_from_ML_estimates(path_annotation,path_templates,path_estimates,varargin)
-MinSylDuration = 0.005; % minimal syllable duration = 8 mSec
+MinSylDuration = 0.005; % minimal syllable duration = 5 mSec
 %addpath(genpath('/Users/yardenc/Documents/Experiments/Code and Hardware Dev/TimOs'));
 params = load(path_annotation);
 expr = params.elements{1}.exper;

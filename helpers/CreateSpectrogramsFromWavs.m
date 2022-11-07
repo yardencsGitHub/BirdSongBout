@@ -1,13 +1,14 @@
-%%This script takes a list of extracted wav files and creates gif and mat
-%%spectrograms under the folders 'gif' and 'mat'. The list is a cell array
-%%'wavs' in the file 'wavs_list.mat'
+function CreateSpectrogramsFromWavs(params)
+% This script takes a parameters structure and creates gif and mat
+% spectrograms under the folders 'gif' and 'mat'. 
+% The list of wav files to convert is a cell array
+% 'wavs' in the parameters file created by ...GitHub/BirdSongBout/helpers/create_parameter_file_for_annotation_pipeline.m 
 keysinfile = 'wavs_list';
-DIR = pwd;
-load(keysinfile);
+DIR = params.workDIR;
+GitHubDir = params.GitHubDir;
+wavs = params.wavs;
 %% repositories
-% addpath(genpath('/Users/tonatiuh/Documents/GitHub'));
-%addpath(genpath('/Users/yardenc/Documents/Experiments/Code and Hardware Dev/GitHub'),'-end');
-addpath(genpath('/Users/yardenc/Documents/GitHub/zftftb'),'-end');
+addpath(genpath(fullfile(GitHubDir,'zftftb')),'-end');
 %% Create spectrogram image data
 % create spectrograms
 % save gif,mat,

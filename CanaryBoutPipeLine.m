@@ -1,103 +1,86 @@
+function CanaryBoutPipeLine(path_to_parameters,steps_to_run)
 % This is a pipeline for annotating new birdsong data using TweetyNet[1]
-% and doing(/preparing for) some annotation cleanup
-% Start with a folder full of wav files
-% Create file lists and spectrograms
-% helper functions in
-% '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers'
-% 1. CreateWavsList.m (requires setting the number of files to skip in
-% parameter
-% 2. CreateSpectrogramsFromWavs.m
+% and doing(/preparing for) some annotation cleanup.
+% To work with this pipeline:
+% - Start with a folder full of wav files that are all the songs recorded
+% from a single bird.
+% - Create a parameters file 
+% 
+% Inputs: 
+%   path_to_parameters (string) 
+%   steps_to_run: vector of integers - the steps to run
+
+% The pipeline includes the steps:
+% 1: Create spectrograms for all wav files
+% 2: add manual annotation and create training set
+% 3: use TweetyNet's estimates to create the automatic annotation files
+% 4: create single syllable snippet spectrograms
+% 5: check for outliers
+
+% Several steps require manual work between them (annotated below)
 
 % [1] 1. Cohen, Y. et al. Automated annotation of birdsong with a neural network that segments spectrograms. eLife 11, e63853 (2022).
-%% 1: set folders dependencies
-%workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb11/llb11 WAV files';
-%workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring - AprMay2018'; 
-% workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb16/llb16 WAV files';
-%workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/llb3 - Spring2019 - part 2';  %Haley's
-%workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4444/lb4444 - Spring2019 - part 2'; %Vika
-%workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1';
-workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459';
-%annotation_file = 'llb11_annotation_Apr_2019_Vika_4TF.mat';
-%annotation_file = 'llb3_annotation_Apr_2019_emily_4TF.mat';
-%'llb3_annotation_Mar_2019_emily.mat';
-%annotation_file = 'llb16_annotation_May_2019_alexa_4TF.mat';
-%annotation_file = 'refined_outliers_llb3_annotation_May_2019_Haley.mat';
-%annotation_file = 'llb3_annotation_May_2019_Haley_4TF.mat';
-%annotation_file = 'llb3_1_annotation_July_2019_Haley_4TF.mat';
-%annotation_file = 'lb4444_annotation_June_2019_Vika.mat';
-%annotation_file = 'HandAnnotation_part1_lb4483_Vika.mat';
-%annotation_file = 'rb4459_HandAnnotation_part1_2019_Haley.mat';
-annotation_file = 'rb4459_annotation_Aug_2019_Haley_4TF.mat';
-%template_file = 'llb11_templates_Mar_2019_Vika_4TF.mat';
-%template_file = 'llb3_templates_Apr_2019_emily.mat';
-%'llb3_templates_Mar_2019_emily.mat';
-%llb16_templates_Alexa_Jan_2019_initial.mat';
-%template_file = 'llb16_templates_May_2019_alexa_4TF.mat';
-%template_file = 'llb3_templates_June_2019_Haley.mat';
-%template_file = 'lb4444_template_June_2019_Vika.mat';
-%template_file = 'HandAnnotation_part1_lb4483_template.mat';
-%template_file = 'rb4459_HandAnnotation_part1_template_Haley.mat';
-template_file = 'rb4459_template_Aug_2019_Haley_4TF.mat';
-estimates_file = 'Results_lb4483_Aug292019.mat';
-estimates_file = 'Results_rb4459_Aug302019.mat';
+%% prep: set folders dependencies
+load(path_to_parameters);
+workDIR = params.workDIR;
+annotation_file = params.annotation_file;
+new_annotation_file = params.new_annotation_file;
+template_file = params.template_file;
+estimates_file = params.estimates_file;
+path_to_SyllableSpects = params.path_to_SyllableSpects;
+GitHubDir = params.GitHubDir;
 disp('done names');
 %%
-addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
+addpath(genpath(fullfile(GitHubDir,'BirdSongBout')),'-end');
+%% 1: Create spectrograms from all WAV files in the working directory
+if ismember(1,steps_to_run)
+    cd(workDIR);
+    rmpath(genpath(fullfile(GitHubDir,'VideoAnalysisPipeline/'))); % just to be sure
+    startfrom = 1; % change this if you wish to ignore the first files in the list.
+    wavs = CreateWavsList(workDIR,startfrom);
+    params.wavs = wavs;
+    save(path_to_parameters,'params');
+    CreateSpectrogramsFromWavs(params);
+    disp('done creating spectrograms');
+end
+%% 2: add manual annotation and create training set
+% Before running this you need to annotate some songs and create an
+% annotation file and a template file. Then, you update the parameters file
+% and run this script again (no need to repeat the first step :)
+if ismember(2,steps_to_run)
+    clc;
+    cd(workDIR);
+    add_annotation_to_mat(workDIR,annotation_file,template_file);
+    display('Done creating training set');
+end
+%% 3: now use the estimates to create the automatic annotation files
+% Before running this part you need to use the annotated training set to
+% create a TweetyNet model and use it to estimate labels in all the
+% dataset.
+if ismember(3,steps_to_run)
+    cd(workDIR);
+    [elements, keys] = update_annotation_from_ML_estimates(annotation_file,template_file,estimates_file,'dt',0.002698412698413,'is_new',1);
+    disp('Done creating new elements');
+end
 
-%% 2: Create spectrograms from all WAV files
-cd(workDIR);
-rmpath(genpath('/Users/yardenc/Documents/GitHub/VideoAnalysisPipeline/'))
-startfrom = 1;
-CreateWavsList(workDIR,1);
-CreateSpectrogramsFromWavs;
-disp('done creating spectrograms');
+% save new annotation file
+save(new_annotation_file,'keys','elements');
 
-
-%% 3: add manual annotation and create training set
-clc;
-cd(workDIR);
-add_annotation_to_mat(workDIR,annotation_file,template_file);
-display('Done creating training set');
-%% 4: now use the estimates to create the automatic annotation files
-cd(workDIR);
-path_annotation = fullfile(workDIR,annotation_file);
-path_templates = fullfile(workDIR,template_file);
-path_estimates = fullfile(workDIR,estimates_file);
-[elements, keys] = update_annotation_from_ML_estimates(path_annotation,path_templates,path_estimates,'dt',0.002698412698413,'is_new',1);
-disp('Done creating new elements');
-
-%% 5: save new annotation file
-new_annotation_file = 'rb4459_annotation_Sep_2019_Haley.mat';
-save(fullfile(workDIR,new_annotation_file),'keys','elements');
-
-%% 6: create single syllable snippet spectrograms
+%% 4: create single syllable snippet spectrograms
 % To run classification tests and separation of syllable classes
-% we create single snippets for each syllable
-addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
-%path_to_annotation = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring - AprMay2018/llb3_annotation_Mar_2019_emily.mat';
-%path_to_annotation = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/llb3 - Spring2019/llb3_annotation_May_2019_Haley.mat';
-%path_to_annotation = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1/HandAnnotation_part1_lb4483_Vika.mat';
-path_to_annotation ='/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/part1_lb4483_annotation_Feb_2020_Vika.mat';
-%path_to_audio = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/llb3 - Spring2019';
-%path_to_audio = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1';
-path_to_audio = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1';
-%/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring - AprMay2018';
-%path_to_target = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring2019_syllable_snippets';
-%path_to_target = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/SyllableSpects';
-path_to_target = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/SyllableSpects';
-Prepare_individual_syllable_spects(path_to_annotation,path_to_audio,path_to_target);
+% we create single snippets for each syllable.
+% Before running this it is important to manually clean the annotations
+if ismember(4,steps_to_run)
+    Prepare_individual_syllable_spects(annotation_file,workDIR,path_to_SyllableSpects);
+end
 
-%% check for outliers
-% after running the python notebook
-% FindOutliers
-% Which is found in: /Users/yardenc/Documents/GitHub/BirdSongBout/helpers
+%% 5: check for outliers
+% after running the python notebook in FindOutliers
+% Which is found in: ... GitHub/BirdSongBout/helpers
 % run Add_outliers_to_annotation.m
-%orig_template = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/Part 1/HandAnnotation_part1_lb4483_template.mat';
-orig_template = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/part1_lb4483_template_Feb_2020.mat';
-%'/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459/part 1/rb4459_HandAnnotation_part1_template_Haley.mat';
 
-%work_folder = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb4483/SyllableSpects';
-work_folder = '/Users/yardenc/Dropbox/Cohen_CanaryBoutAnnotation/lb4483/Part 1/SyllableSpects';
-orig_annotation = path_to_annotation;
-Add_outliers_to_annotation(work_folder, orig_annotation,orig_template)
+if ismember(5,steps_to_run)
+    work_folder = path_to_SyllableSpects; 
+    Add_outliers_to_annotation(work_folder,annotation_file,template_file)
+end
 
