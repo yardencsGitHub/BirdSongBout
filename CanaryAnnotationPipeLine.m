@@ -1,4 +1,4 @@
-function CanaryBoutPipeLine(path_to_parameters,steps_to_run)
+function CanaryAnnotationPipeLine(path_to_parameters,steps_to_run)
 % This is a pipeline for annotating new birdsong data using TweetyNet[1]
 % and doing(/preparing for) some annotation cleanup.
 % To work with this pipeline:
