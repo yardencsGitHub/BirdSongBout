@@ -1,4 +1,5 @@
-% pipeline for using new birdsong data for whatever purpose
+% This is a pipeline for annotating new birdsong data using TweetyNet[1]
+% and doing(/preparing for) some annotation cleanup
 % Start with a folder full of wav files
 % Create file lists and spectrograms
 % helper functions in
@@ -6,6 +7,8 @@
 % 1. CreateWavsList.m (requires setting the number of files to skip in
 % parameter
 % 2. CreateSpectrogramsFromWavs.m
+
+% [1] 1. Cohen, Y. et al. Automated annotation of birdsong with a neural network that segments spectrograms. eLife 11, e63853 (2022).
 %% 1: set folders dependencies
 %workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb11/llb11 WAV files';
 %workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/llb3/Spring - AprMay2018'; 
