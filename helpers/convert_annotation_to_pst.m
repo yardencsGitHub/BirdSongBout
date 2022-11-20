@@ -1,4 +1,4 @@
-function [DATA, syllables, file_numbers, file_day_indices, song_durations] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_date_times, song_start_offests] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -12,6 +12,15 @@ function [DATA, syllables, file_numbers, file_day_indices, song_durations] = con
 %
 % Output:
 %   DATA - a cell array of strings
+%   syllables - vector of all syllable numbers 
+%   file_numbers - vector, indices in the annotation data of all entries in DATA    
+%   file_day_indices - vector, indices of recording days for all entries in DATA 
+%   song_durations - vector, durations (in seconds) of all entries in DATA  
+%   file_date_times - vector, datetime variables for all entries in DATA     
+%   song_start_offests - vector, the start time (in seconds) for all
+%   entries in DATA relative to the recording file onset (not the song
+%   onset since there can be more than one song per file)
+
 AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 onset_sym = '1';
 offset_sym = '2';
@@ -91,10 +100,11 @@ end
 syllables = [edge_syms syllables];
 AlphaNumeric = [onset_sym offset_sym AlphaNumeric];
 
-temp = [];
 actual_syllables = [];
 file_date_nums = [];
 song_durations = [];
+file_date_times = [];
+song_start_offests = [];
 for fnum = 1:numel(keys)
     curr_date_num = return_date_num(keys{fnum});
     if ~isempty(ignore_dates)
@@ -105,7 +115,11 @@ for fnum = 1:numel(keys)
     end
     element = elements{fnum};
     locs = find(ismember(element.segType,ignore_entries));
-    element.segAbsStartTimes(locs) = [];
+    try 
+        element.segAbsStartTimes(locs) = [];
+    catch em
+        'This field may not exist in some annotation files';
+    end
     element.segFileStartTimes(locs) = [];
     element.segFileEndTimes(locs) = [];
     element.segType(locs) = [];  
@@ -120,6 +134,7 @@ for fnum = 1:numel(keys)
         currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
         currsyls = [-1000 phrases.phraseType(1)];
         curr_song_onset = phrases.phraseFileStartTimes(1);
+        curr_song_datetime = get_date_from_file_name(keys{fnum});
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
@@ -131,6 +146,8 @@ for fnum = 1:numel(keys)
                     file_date_nums = [file_date_nums; curr_date_num];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
                     song_durations = [song_durations phrases.phraseFileEndTimes(phrasenum) - curr_song_onset];
+                    file_date_times = [file_date_times curr_song_datetime];
+                    song_start_offests = [song_start_offests curr_song_onset];
                 end
                 currDATA = [AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
                 currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
@@ -143,6 +160,8 @@ for fnum = 1:numel(keys)
             file_date_nums = [file_date_nums; curr_date_num];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
             song_durations = [song_durations phrases.phraseFileEndTimes(end) - curr_song_onset];
+            file_date_times = [file_date_times curr_song_datetime];
+            song_start_offests = [song_start_offests curr_song_onset];
         end
     catch em
         '8';
@@ -165,7 +184,8 @@ end
 function d = get_date_from_file_name(filename,varargin)
     d='';
     sep = '_';
-    date_idx = 3:5;
+    date_idx = 3:8;
+    return_datetime = 1;
     nparams = numel(varargin);
     for i=1:2:nparams
         switch lower(varargin{i})
@@ -173,9 +193,35 @@ function d = get_date_from_file_name(filename,varargin)
 			    sep=varargin{i+1};
             case 'date_idx'
 			    date_idx=varargin{i+1};
+            case 'return_datetime'
+			    return_datetime=varargin{i+1};
         end
     end
     tokens = split(filename,sep);
-    d = char(join(tokens(date_idx),'_'));
+    last_string = split(tokens{date_idx(6)},'.');
+    last_string = last_string{1};
+    if return_datetime == 1
+        switch length(date_idx)
+            case 6
+                d = datetime(str2num(tokens{date_idx(1)}),...
+                    str2num(tokens{date_idx(2)}),...
+                    str2num(tokens{date_idx(3)}),...
+                    str2num(tokens{date_idx(4)}),...
+                    str2num(tokens{date_idx(5)}),...
+                    str2num(last_string));
+            case 5
+                d = datetime(str2num(tokens{date_idx(1)}),...
+                    str2num(tokens{date_idx(2)}),...
+                    str2num(tokens{date_idx(3)}),...
+                    str2num(tokens{date_idx(4)}),...
+                    str2num(last_string),...
+                    str2num(00));
+            otherwise
+                disp('Error in date format');
+                d = 0;
+        end
+    else
+        d = char(join(tokens(date_idx),'_'));
+    end
 
 end
