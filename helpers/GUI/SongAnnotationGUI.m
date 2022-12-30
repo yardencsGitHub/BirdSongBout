@@ -5,12 +5,14 @@ function SongAnnotationGUI(varargin)
     settings_file_path = pwd; %'/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI/';
     %settings_file_path = '/Users/yardenc/Documents/GitHub/BirdSongBout/helpers/GUI';
     settings_file_name = 'BoutAnnotation_settings_file.mat';
-    
+    spectrogram_type = 'regular';
     nparams=length(varargin);
-    for i=1:2:nparams
-        switch lower(varargin{i})
+    for i_ind=1:2:nparams
+        switch lower(varargin{i_ind})
             case 'settings_file_path'
-                settings_file_path=varargin{i+1};
+                settings_file_path=varargin{i_ind+1};
+            case 'spectrogram_type'
+                spectrogram_type=varargin{i_ind+1};
         end
     end
     
@@ -33,9 +35,9 @@ function SongAnnotationGUI(varargin)
         settings_params.text_height = 8250;
         settings_params.min_gap = 0.005;
         settings_params.min_syl = 0.005;
-        settings_params.map_caxis = [0 10];
+        settings_params.map_caxis = [0 3];
         settings_params.fmin = 500;  
-        settings_params.fmax = 7000;
+        settings_params.fmax = 12000;
         save(fullfile(settings_file_path,settings_file_name),'settings_params');
     end
     
@@ -115,8 +117,8 @@ function SongAnnotationGUI(varargin)
                              'directstatus', 'Undirected');
             elements = [elements; base_struct];
         end
-        for i = 1:numel(keys)
-            tokens = regexp(keys{i},'_','split');
+        for i_ind = 1:numel(keys)
+            tokens = regexp(keys{i_ind},'_','split');
             ord = [ord; str2num(tokens{2})];
             dates = [dates; char(join(tokens(3:5),'_'))];
              
@@ -153,8 +155,8 @@ function SongAnnotationGUI(varargin)
         dates = [];
 
      
-        for i = 1:numel(keys)
-            tokens = regexp(keys{i},'_','split');
+        for i_ind = 1:numel(keys)
+            tokens = regexp(keys{i_ind},'_','split');
             ord = [ord; str2num(tokens{2})];
             dates = [dates; char(join(tokens(3:5),'_'))];
              
@@ -176,7 +178,8 @@ function SongAnnotationGUI(varargin)
     [y,settings_params.FS] = audioread(fullfile(DIR,filename));
     tmin = 0;
     tmax = numel(y)/settings_params.FS;
-    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+    %[S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+    [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
     if ~isempty(elements{file_loc_in_keys}.segType)
         phrases = return_phrase_times(elements{file_loc_in_keys});
     else
@@ -233,16 +236,65 @@ function SongAnnotationGUI(varargin)
     window_handles = {params_handles h_map h_temp hf};
     params_handles.save_settings.UserData = {settings_params window_handles full_setting_path};
 %%%%%%%%%%%%%%%%% functions
+    function [S,F,T,P] = mt_spectrogram(sig_in,samplerate,time_step_ms,varargin)
+        switch spectrogram_type
+            case 'regular'
+                [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
+                return
+            
+            otherwise
+                % will use Slepian tapers
+                NW = 4;
+                nfft = 1024;
+                
+                nparams=length(varargin);
+                for i_ind=1:2:nparams
+	                switch lower(varargin{i_ind})
+		                case 'nw'
+                            NW = varargin{i_ind+1};
+                        case 'nfft'
+                            nfft = varargin{i_ind+1};
+                    end
+                end
+                noverlap = nfft - round(time_step_ms/1000*samplerate);
+                if noverlap < 0
+                    disp('overlap cannot be negative');
+                    return
+                end
+                [E,V] = dpss(nfft,NW);
+                [S1,F,T] = spectrogram(sig_in,E(:,1),noverlap,nfft,samplerate);
+                [S2,F,T] = spectrogram(sig_in,E(:,2),noverlap,nfft,samplerate);
+                S = S1.*conj(S1)+S2.*conj(S2);
+                P=real(1i*(S1.*conj(S2)));
+        end
+    end
+
     function draw_spec(axes_handle) %(T >= tonset & T<=toffset) T >= tonset & T<=toffset
-        imagesc(axes_handle,T,F(F<settings_params.fmax & F>settings_params.fmin),log(1+abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))); colormap(1-gray); caxis(settings_params.map_caxis); xlim([tonset toffset]);
+        
+        switch spectrogram_type
+            case 'regular'
+                imagesc(axes_handle,T,F(F<settings_params.fmax & F>settings_params.fmin),log(1+abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))); 
+                caxis(settings_params.map_caxis); 
+            case 'multitaper_psd'
+                imagesc(axes_handle,T,F(F<settings_params.fmax & F>settings_params.fmin),log(1+abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))); 
+                caxis(settings_params.map_caxis); 
+            case 'multitaper_deriv'
+                P_temp = P(F<settings_params.fmax & F>settings_params.fmin,:);
+                P_temp = log(1+abs(P_temp.*(P_temp>=0)))-log(1+abs(P_temp.*(P_temp<0)));
+                imagesc(axes_handle,T,F(F<settings_params.fmax & F>settings_params.fmin),P_temp); 
+                caxis(settings_params.map_caxis);
+        end
+        colormap( 1-gray); 
+        
+        xlim([tonset toffset]);
         axes(axes_handle);
         set(gca,'YDir','normal');
         hold on; 
-        for i = 1:numel(gr_lines)
-            delete(gr_lines(i));
+        for i_ind = 1:numel(gr_lines)
+            delete(gr_lines(i_ind));
         end
-        for i = 1:numel(rd_lines)
-            delete(rd_lines(i));
+        for i_ind = 1:numel(rd_lines)
+            delete(rd_lines(i_ind));
         end
         [gr_lines rd_lines] = draw_lines(axes_handle);
         ylim([settings_params.fmin settings_params.fmax]);
@@ -420,7 +472,8 @@ function SongAnnotationGUI(varargin)
                     [y,settings_params.FS] = audioread(fullfile(DIR,filename));
                     tmin = 0;
                     tmax = numel(y)/settings_params.FS;
-                    [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS,'reassigned');
+                    %[S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+                    [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
                     if ~isempty(elements{file_loc_in_keys}.segType)
                         phrases = return_phrase_times(elements{file_loc_in_keys});
                     else
@@ -731,7 +784,8 @@ function SongAnnotationGUI(varargin)
                 [y,settings_params.FS] = audioread(fullfile(DIR,filename));
                 tmin = 0;
                 tmax = numel(y)/settings_params.FS;
-                [S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+                %[S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
+                [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
                 if ~isempty(elements{file_loc_in_keys}.segType)
                     phrases = return_phrase_times(elements{file_loc_in_keys});
                 else
