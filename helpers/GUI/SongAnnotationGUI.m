@@ -40,7 +40,12 @@ function SongAnnotationGUI(varargin)
         settings_params.fmax = 12000;
         save(fullfile(settings_file_path,settings_file_name),'settings_params');
     end
-    
+    switch spectrogram_type
+        case 'multitaper_deriv'
+            settings_params.map_caxis = [-2 2];
+        otherwise
+            settings_params.map_caxis = [0 3];
+    end
     h_params = ParamsDialog('Position',settings_params.window_positions(1,:));
     params_handles = get(h_params,'UserData');
     %% get working directory .. wait for it
@@ -239,7 +244,7 @@ function SongAnnotationGUI(varargin)
     function [S,F,T,P] = mt_spectrogram(sig_in,samplerate,time_step_ms,varargin)
         switch spectrogram_type
             case 'regular'
-                [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
+                [S,F,T,P] = spectrogram(sig_in,220,220-44,512,settings_params.FS);
                 return
             
             otherwise
@@ -265,7 +270,10 @@ function SongAnnotationGUI(varargin)
                 [S1,F,T] = spectrogram(sig_in,E(:,1),noverlap,nfft,samplerate);
                 [S2,F,T] = spectrogram(sig_in,E(:,2),noverlap,nfft,samplerate);
                 S = S1.*conj(S1)+S2.*conj(S2);
-                P=real(1i*(S1.*conj(S2)));
+                dx = -real(S1.*conj(S2));
+                dy = real(1i*(S1.*conj(S2)));
+                fm = atan(max(dx(F>=settings_params.fmin))./max(dy(F>=settings_params.fmin))+eps);
+                P = repmat(cos(fm),length(F),1).*dx + repmat(sin(fm),length(F),1).*dy;
         end
     end
 
@@ -280,7 +288,7 @@ function SongAnnotationGUI(varargin)
                 caxis(settings_params.map_caxis); 
             case 'multitaper_deriv'
                 P_temp = P(F<settings_params.fmax & F>settings_params.fmin,:);
-                P_temp = log(1+abs(P_temp.*(P_temp>=0)))-log(1+abs(P_temp.*(P_temp<0)));
+                %P_temp = log(1+abs(P_temp.*(P_temp>=0)))-log(1+abs(P_temp.*(P_temp<0)));
                 imagesc(axes_handle,T,F(F<settings_params.fmax & F>settings_params.fmin),P_temp); 
                 caxis(settings_params.map_caxis);
         end
