@@ -25,13 +25,19 @@ AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 onset_sym = '1';
 offset_sym = '2';
 orig_syls = [];
-MaxSep = 0.5; % maximal phrase separation within a bout (sec)
+MaxSep = 0.5; % maximal inter-phrase separation within a bout (sec). 
+% Larger inter-phrase separation will break the bout into different songs.
+MaxSyllableSep = 0.5; % maximal inter-syllable separation within a phrase (sec) 
+% Larger within-phrase inter-syllable separation will break the phrase into
+% different phrases
 
 nparams=length(varargin);
 for i=1:2:nparams
 	switch lower(varargin{i})
 		case 'maxsep'
 			MaxSep=varargin{i+1};
+        case 'maxsyllablesep'
+			MaxSyllableSep=varargin{i+1};
         case 'onset_sym'
             onset_sym = varargin{i+1};
         case 'offset_sym'
@@ -129,7 +135,7 @@ for fnum = 1:numel(keys)
     end
     
     try
-        phrases = return_phrase_times(element);
+        phrases = return_phrase_times(element,'max_separation',MaxSyllableSep);
         
         currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
         currsyls = [-1000 phrases.phraseType(1)];

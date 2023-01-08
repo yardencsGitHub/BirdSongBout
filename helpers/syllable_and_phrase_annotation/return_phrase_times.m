@@ -1,5 +1,12 @@
-function res = return_phrase_times(element)
+function res = return_phrase_times(element,varargin)
     max_separation = 0.25;
+    nparams=length(varargin);
+    for i=1:2:nparams
+        switch lower(varargin{i})
+            case 'max_separation'
+                max_separation = varargin{i+1};
+        end
+    end
     t_onset = [];
     t_offset = [];
     segtypes = [];
