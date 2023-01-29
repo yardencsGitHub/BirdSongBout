@@ -1,4 +1,4 @@
-function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_indices, brainard_features, tchernichovski_features] = convert_annotation_to_syllable_strings(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_indices,song_durations, file_date_times, song_start_offests, brainard_features, tchernichovski_features] = convert_annotation_to_syllable_strings(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -76,6 +76,7 @@ onset_sym = '1';
 offset_sym = '2';
 orig_syls = [];
 MaxSep = 0.5; % maximal phrase separation within a bout (sec)
+MaxSyllableSep = 0.45; % maximal within phrase gap (beyond which phrases will split)
 calc_brainard = '';
 calc_tchernichovski = '';
 nparams=length(varargin);
@@ -83,6 +84,8 @@ for i=1:2:nparams
 	switch lower(varargin{i})
 		case 'maxsep'
 			MaxSep=varargin{i+1};
+        case 'maxsyllablesep'
+			MaxSyllableSep=varargin{i+1};
         case 'onset_sym'
             onset_sym = varargin{i+1};
         case 'offset_sym'
@@ -140,8 +143,6 @@ if ~isempty(calc_tchernichovski)
 end
 load(path_to_annotation_file);
 
-DATA = {}; durations = {}; gaps = {}; phrase_idxs = {}; brainard_features = {}; tchernichovski_features = {};
-file_numbers = [];
 if isempty(orig_syls)
     syllables = [];
     for fnum = 1:numel(keys)  
@@ -168,8 +169,11 @@ end
 syllables = [edge_syms syllables];
 AlphaNumeric = [onset_sym offset_sym AlphaNumeric];
 
+DATA = {}; durations = {}; gaps = {}; phrase_idxs = {}; brainard_features = {}; tchernichovski_features = {};
 actual_syllables = [];
 file_date_nums = [];
+file_numbers = [];
+song_durations = []; file_date_times=[]; song_start_offests=[];
 for fnum = 1:numel(keys)
     curr_date_num = return_date_num(keys{fnum});
     if ~isempty(ignore_dates)
@@ -199,12 +203,13 @@ for fnum = 1:numel(keys)
     end
     % Now calculate all data per songs
     try
-        phrases = return_phrase_times(element);
+        phrases = return_phrase_times(element,'max_separation',MaxSyllableSep);
         curr_mids = (element.segFileEndTimes + element.segFileStartTimes)/2;
         curr_durations = (element.segFileEndTimes - element.segFileStartTimes);
         curr_gaps = (element.segFileStartTimes(2:end) - element.segFileEndTimes(1:end-1));
         
         currsyls = [-1000 phrases.phraseType(1)];
+        curr_song_onset = phrases.phraseFileStartTimes(1);
         locs = find(curr_mids > phrases.phraseFileStartTimes(1) & curr_mids < phrases.phraseFileEndTimes(1));
         currDATA = [repmat(AlphaNumeric(syllables == phrases.phraseType(1)),1,numel(locs))];
         if ~ismember(phrases.phraseType(1),syllables)
@@ -213,6 +218,7 @@ for fnum = 1:numel(keys)
         curr_idxs = ones(1,numel(locs));
         curr_locs = [locs];
         curr_phrase_idx = 1;
+        curr_song_datetime = get_date_from_file_name(keys{fnum});
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 locs = find(curr_mids > phrases.phraseFileStartTimes(phrasenum + 1) & curr_mids < phrases.phraseFileEndTimes(phrasenum + 1));
@@ -233,6 +239,9 @@ for fnum = 1:numel(keys)
                     durations = {durations{:} curr_durations(curr_locs)}; 
                     gaps = {gaps{:} curr_gaps(curr_locs(1:end-1))}; 
                     phrase_idxs = {phrase_idxs{:} curr_idxs};
+                    song_durations = [song_durations phrases.phraseFileEndTimes(phrasenum) - curr_song_onset];
+                    file_date_times = [file_date_times curr_song_datetime];
+                    song_start_offests = [song_start_offests curr_song_onset];
                     if ~isempty(calc_tchernichovski)
                         tchernichovski_features = {tchernichovski_features{:} tch_features(:,curr_locs)};
                     end
@@ -246,6 +255,7 @@ for fnum = 1:numel(keys)
                 curr_phrase_idx = 1;
                 curr_locs = [locs];
                 currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
+                curr_song_onset = phrases.phraseFileStartTimes(phrasenum + 1);
             end  
         end
         if (numel(unique(curr_idxs)) >= min_phrases)
@@ -256,6 +266,9 @@ for fnum = 1:numel(keys)
             durations = {durations{:} curr_durations(curr_locs)}; 
             gaps = {gaps{:} curr_gaps(curr_locs(1:end-1))}; 
             phrase_idxs = {phrase_idxs{:} curr_idxs};
+            song_durations = [song_durations phrases.phraseFileEndTimes(end) - curr_song_onset];
+            file_date_times = [file_date_times curr_song_datetime];
+            song_start_offests = [song_start_offests curr_song_onset];
             if ~isempty(calc_tchernichovski)
                 tchernichovski_features = {tchernichovski_features{:} tch_features(:,curr_locs)};
             end
@@ -284,7 +297,8 @@ end
 function d = get_date_from_file_name(filename,varargin)
     d='';
     sep = '_';
-    date_idx = 3:5;
+    date_idx = 3:8;
+    return_datetime = 1;
     nparams = numel(varargin);
     for i=1:2:nparams
         switch lower(varargin{i})
@@ -292,12 +306,55 @@ function d = get_date_from_file_name(filename,varargin)
 			    sep=varargin{i+1};
             case 'date_idx'
 			    date_idx=varargin{i+1};
+            case 'return_datetime'
+			    return_datetime=varargin{i+1};
         end
     end
     tokens = split(filename,sep);
-    d = char(join(tokens(date_idx),'_'));
+    last_string = split(tokens{date_idx(6)},'.');
+    last_string = last_string{1};
+    if return_datetime == 1
+        switch length(date_idx)
+            case 6
+                d = datetime(str2num(tokens{date_idx(1)}),...
+                    str2num(tokens{date_idx(2)}),...
+                    str2num(tokens{date_idx(3)}),...
+                    str2num(tokens{date_idx(4)}),...
+                    str2num(tokens{date_idx(5)}),...
+                    str2num(last_string));
+            case 5
+                d = datetime(str2num(tokens{date_idx(1)}),...
+                    str2num(tokens{date_idx(2)}),...
+                    str2num(tokens{date_idx(3)}),...
+                    str2num(tokens{date_idx(4)}),...
+                    str2num(last_string),...
+                    str2num(00));
+            otherwise
+                disp('Error in date format');
+                d = 0;
+        end
+    else
+        d = char(join(tokens(date_idx),'_'));
+    end
 
 end
+% function d = get_date_from_file_name(filename,varargin)
+%     d='';
+%     sep = '_';
+%     date_idx = 3:5;
+%     nparams = numel(varargin);
+%     for i=1:2:nparams
+%         switch lower(varargin{i})
+%             case 'sep'
+% 			    sep=varargin{i+1};
+%             case 'date_idx'
+% 			    date_idx=varargin{i+1};
+%         end
+%     end
+%     tokens = split(filename,sep);
+%     d = char(join(tokens(date_idx),'_'));
+% 
+% end
 
 function br_features = calculate_br_features(wav_fname,element)
     [y,fs] = audioread(wav_fname); time_steps_y = ([1:numel(y)]-0.5) * (1/fs);
