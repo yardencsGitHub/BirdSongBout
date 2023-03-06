@@ -55,22 +55,22 @@ function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_
 %   BirdSongBout/helpers/external/SAT). The continuous variables are
 %   interpolated to sampling at 1000Hz and the median value is taken for
 %   each syllable. The features are:
-%                     goodness      
-%                     mean_frequency
-%                     FM            
-%                     pow1          
-%                     peak1         
-%                     pow2          
-%                     peak2         
-%                     pow3          
-%                     peak3         
-%                     pow4          
-%                     peak4         
-%                     amplitude     
-%                     entropy       
-%                     pitch         
-%                     aperiodicity  
-%                     AM            
+%                     1: goodness      
+%                     2: mean_frequency
+%                     3: FM            
+%                     4: pow1          
+%                     5: peak1         
+%                     6: pow2          
+%                     7: peak2         
+%                     8: pow3          
+%                     9: peak3         
+%                     10:pow4          
+%                     11:peak4         
+%                     12:amplitude     
+%                     13:entropy       
+%                     14:pitch         
+%                     15:aperiodicity  
+%                     16:AM            
 AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 onset_sym = '1';
 offset_sym = '2';
@@ -175,6 +175,7 @@ file_date_nums = [];
 file_numbers = [];
 song_durations = []; file_date_times=[]; song_start_offests=[];
 for fnum = 1:numel(keys)
+    disp([fnum numel(keys)])
     curr_date_num = return_date_num(keys{fnum});
     if ~isempty(ignore_dates)
         if ismember(return_date_num(keys{fnum}),datenum(ignore_dates))
@@ -199,7 +200,11 @@ for fnum = 1:numel(keys)
     end
     if ~isempty(calc_brainard)
         wav_fname = fullfile(wav_folder,keys{fnum});
-        br_features = calculate_br_features(wav_fname,element);
+        try
+            br_features = calculate_br_features(wav_fname,element);
+        catch emm
+            '*';
+        end
     end
     % Now calculate all data per songs
     try
@@ -275,6 +280,9 @@ for fnum = 1:numel(keys)
             if ~isempty(calc_brainard)
                 brainard_features = {brainard_features{:} br_features(:,curr_locs)};
             end
+        end
+        if numel(brainard_features{1}) == 1
+            '*';
         end
     catch em
         '8';
@@ -360,8 +368,17 @@ function br_features = calculate_br_features(wav_fname,element)
     [y,fs] = audioread(wav_fname); time_steps_y = ([1:numel(y)]-0.5) * (1/fs);
     br_features = zeros(7,numel(element.segType));
     for segnum = 1:numel(element.segType)
-        bf = Brainard_features(y((time_steps_y >= element.segFileStartTimes(segnum)) && (time_steps_y <= element.segFileEndTimes(segnum))),fs);
-        br_features(:,segnum) = [bf.FF; bf.time_to_half_peak; bf.FF_slope; bf.Amplitude_Slope; bf.Spectral_Entropy; bf.Temporal_Entropy; bf.SpectroTemporal_Entropy];
+        try 
+            bf = Brainard_features(y((time_steps_y >= element.segFileStartTimes(segnum)) & (time_steps_y <= element.segFileEndTimes(segnum))),fs);
+            br_features(:,segnum) = [bf.FF; bf.time_to_half_peak; bf.FF_slope; bf.Amplitude_Slope; bf.Spectral_Entropy; bf.Temporal_Entropy; bf.SpectroTemporal_Entropy];
+        catch em
+            disp('*');
+            curr_data_points = y((time_steps_y >= element.segFileStartTimes(segnum)) & (time_steps_y <= element.segFileEndTimes(segnum)));
+            curr_n_datapoints = numel(curr_data_points);
+            curr_data_points = [curr_data_points; zeros(240-curr_n_datapoints,1)];
+            bf = Brainard_features(curr_data_points,fs);
+            br_features(:,segnum) = [bf.FF; bf.time_to_half_peak; bf.FF_slope; bf.Amplitude_Slope; bf.Spectral_Entropy; bf.Temporal_Entropy; bf.SpectroTemporal_Entropy];
+        end
     end
 end
 

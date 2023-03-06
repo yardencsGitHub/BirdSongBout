@@ -47,15 +47,31 @@ while 1
         break;
     end
 end
-
-features.FF = mean(FF(ceil(numel(FF)*0.1):floor(numel(FF)*0.9)));
+if ~isempty(FF)
+    if numel(FF) > 1
+        features.FF = mean(FF(ceil(numel(FF)*0.1):floor(numel(FF)*0.9)));
+    else
+        features.FF = FF;
+    end
+else
+    features.FF = nan;
+    disp('Could not calculate FF');
+end
 
 % Time to half peak amplitude
 loc_half_peak = min(find(rect_y >= max(rect_y)/2));
 features.time_to_half_peak = loc_half_peak*dt; 
 
 % Frequency slope:
-features.FF_slope = mean(diff(FF(ceil(numel(FF)*0.1):floor(numel(FF)*0.9))));
+if numel(FF)>1
+    if numel(FF)>2
+        features.FF_slope = mean(diff(FF(ceil(numel(FF)*0.1):floor(numel(FF)*0.9))));
+    else
+        features.FF_slope = FF(2)-FF(1);
+    end
+else
+    features.FF_slope = nan;
+end
 
 % Amplitude slope
 P1 = mean(rect_y(ceil(numel(y)*0.1):floor(numel(y)*0.5))); 
