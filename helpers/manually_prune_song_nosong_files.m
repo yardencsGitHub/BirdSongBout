@@ -66,6 +66,7 @@ while dirnum <= tot_dirnum
             if strcmp(answer,'Yes')
                 delete(fullfile(basedir,'gif',files(filenum).name));
                 delete(fullfile(basedir,'wav',[files(filenum).name(1:end-3) 'wav']));
+                delete(fullfile(basedir,'idx',[files(filenum).name(1:end-3) 'mat']));
                 files(filenum) = [];
                 tot_filenum = tot_filenum - 1;
                 hgclose(fh);
@@ -73,7 +74,7 @@ while dirnum <= tot_dirnum
             end
         end
         if k == 'q'
-            disp(['Stopping at file numbner ' num2str(currfile)]);
+            disp(['Stopping at file number ' num2str(currfile)]);
             hgclose(fh);
             return;
         end
