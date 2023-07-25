@@ -46,7 +46,7 @@ function SongAnnotationGUI(varargin)
         otherwise
             settings_params.map_caxis = [0 3];
     end
-    h_params = ParamsDialog('Position',settings_params.window_positions(1,:));
+    h_params = GUI_ParamsDialog('Position',settings_params.window_positions(1,:));
     params_handles = get(h_params,'UserData');
     %% get working directory .. wait for it
     params_handles.dir_name.UserData = 0;
@@ -96,7 +96,7 @@ function SongAnnotationGUI(varargin)
     params_handles.SylTags.String = tmp;
     n_syllables = numel(syllables);
     freq_min = 300; freq_max = 8000;
-    colors = distinguishable_colors(n_syllables,'w');
+    colors = GUI_GUI_distinguishable_colors(n_syllables,'w');
     if exist(fullfile(DIR,annotation_filename))
         load(fullfile(DIR,annotation_filename),'keys','elements');
         filename = keys{1};
@@ -141,7 +141,7 @@ function SongAnnotationGUI(varargin)
         exper = struct('birdname',bird_exper_name,'expername','Recording from Canary',...
             'desiredInSampRate',fs,'audioCh',0','sigCh',[],'datecreated',date,'researcher','YC');
         
-        [keys, elements, templates] = create_empty_elements(DIR,bird_exper_name,exper);
+        [keys, elements, templates] = GUI_create_empty_elements(DIR,bird_exper_name,exper);
         annotation_filename = input('Type ANNOTATION file name: ','s');
         if ~strcmp(annotation_filename(end-3:end),'.mat')
             annotation_filename = [annotation_filename '.mat'];
@@ -186,7 +186,7 @@ function SongAnnotationGUI(varargin)
     %[S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
     [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
     if ~isempty(elements{file_loc_in_keys}.segType)
-        phrases = return_phrase_times(elements{file_loc_in_keys});
+        phrases = GUI_return_phrase_times(elements{file_loc_in_keys});
     else
         phrases = [];
     end
@@ -220,7 +220,7 @@ function SongAnnotationGUI(varargin)
     settings_params.tmpthr = thr;
     
         %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
+    [on_times,off_times] = GUI_syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
     % prepare mock syllables for auto positioning
     mock_ofsettings_params.FS = off_times(off_times > on_times(1));
     mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -415,7 +415,7 @@ function SongAnnotationGUI(varargin)
                 if numel(taglist ~= numel(syllables))
                     syllables = taglist;
                     n_syllables = numel(syllables);
-                    colors = distinguishable_colors(n_syllables,'w');
+                    colors = GUI_distinguishable_colors(n_syllables,'w');
                 end
                 current_label = syllables(params_handles.SylTags.Value);
                 to_change = find(elements{file_loc_in_keys}.segFileStartTimes(current_syllables) >= tstart & ...
@@ -483,7 +483,7 @@ function SongAnnotationGUI(varargin)
                     %[S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
                     [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
                     if ~isempty(elements{file_loc_in_keys}.segType)
-                        phrases = return_phrase_times(elements{file_loc_in_keys});
+                        phrases = GUI_return_phrase_times(elements{file_loc_in_keys});
                     else
                         phrases = [];
                     end
@@ -518,7 +518,7 @@ function SongAnnotationGUI(varargin)
                     settings_params.tmpthr = thr;
 
                         %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-                    [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
+                    [on_times,off_times] = GUI_syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>0,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
                     % prepare mock syllables for auto positioning
                     mock_ofsettings_params.FS = off_times(off_times > on_times(1));
                     mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -542,7 +542,7 @@ function SongAnnotationGUI(varargin)
                     params_handles.file_list.UserData = elements;
                 end
             case 'r' %update map colors
-                phrases = return_phrase_times(elements{file_loc_in_keys});
+                phrases = GUI_return_phrase_times(elements{file_loc_in_keys});
                 plot_full_amplitude_envelope(axes_map);
                 set(axes_map,'Position',[0.01 0.15 0.98 0.8]); 
                 set(axes_map,'YTick',[]);
@@ -656,7 +656,7 @@ function SongAnnotationGUI(varargin)
                 %if (settings_params.tmpthr ~= thr)
                 thrflag = 1;
                 settings_params.tmpthr = thr;
-                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,settings_params.min_gap,settings_params.min_syl);
+                [on_times,off_times] = GUI_syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,T >= tonset & T<=toffset)))),T(T >= tonset & T<=toffset),thr,settings_params.min_gap,settings_params.min_syl);
                 % prepare mock syllables for auto positioning
                 mock_ofsettings_params.FS = off_times(off_times > on_times(1));
                 mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -795,7 +795,7 @@ function SongAnnotationGUI(varargin)
                 %[S,F,T,P] = spectrogram((y/(sqrt(mean(y.^2)))),220,220-44,512,settings_params.FS);%,'reassigned');
                 [S,F,T,P] = mt_spectrogram((y/(sqrt(mean(y.^2)))),settings_params.FS,1,'nfft',512);
                 if ~isempty(elements{file_loc_in_keys}.segType)
-                    phrases = return_phrase_times(elements{file_loc_in_keys});
+                    phrases = GUI_return_phrase_times(elements{file_loc_in_keys});
                 else
                     phrases = [];
                 end
@@ -830,7 +830,7 @@ function SongAnnotationGUI(varargin)
                 settings_params.tmpthr = thr;
 
                     %T >= tonset & T<=toffset (T >= tonset & T<=toffset)
-                [on_times,off_times] = syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
+                [on_times,off_times] = GUI_syllable_envelope(log(sum(abs(S(F<settings_params.fmax & F>settings_params.fmin,:)))),T,thr,settings_params.min_gap,settings_params.min_syl);
                 % prepare mock syllables for auto positioning
                 mock_ofsettings_params.FS = off_times(off_times > on_times(1));
                 mock_ons = on_times(on_times < mock_ofsettings_params.FS(end));
@@ -907,7 +907,7 @@ function SongAnnotationGUI(varargin)
                     if numel(taglist ~= numel(syllables))
                         syllables = taglist;
                         n_syllables = numel(syllables);
-                        colors = distinguishable_colors(n_syllables,'w');
+                        colors = GUI_distinguishable_colors(n_syllables,'w');
                     end
                     current_label = syllables(params_handles.SylTags.Value);
                     elements{file_loc_in_keys}.segType(current_syllables(syl_cnt)) = current_label;
@@ -921,7 +921,7 @@ function SongAnnotationGUI(varargin)
                 if numel(taglist ~= numel(syllables))
                     syllables = taglist;
                     n_syllables = numel(syllables);
-                    colors = distinguishable_colors(n_syllables,'w');
+                    colors = GUI_distinguishable_colors(n_syllables,'w');
                 end
                 current_label = syllables(params_handles.SylTags.Value);
                 mock_locs = find(mock_ons >= tonset & mock_ofsettings_params.FS <= toffset);
@@ -942,7 +942,7 @@ function SongAnnotationGUI(varargin)
                     if numel(unique([taglist;-1])) ~= numel(syllables)
                         syllables = taglist;
                         n_syllables = numel(syllables);
-                        colors = distinguishable_colors(n_syllables,'w');
+                        colors = GUI_distinguishable_colors(n_syllables,'w');
                     end
                     current_label = syllables(params_handles.SylTags.Value);
                     button = questdlg(['Do you want to update the template for syllable #' num2str(current_label) ' ?'],'LABELING','Yes','No','No');
@@ -971,7 +971,7 @@ function SongAnnotationGUI(varargin)
                     if numel(taglist ~= numel(syllables))
                         syllables = taglist;
                         n_syllables = numel(syllables);
-                        colors = distinguishable_colors(n_syllables,'w');
+                        colors = GUI_distinguishable_colors(n_syllables,'w');
                     end
                     current_label = syllables(params_handles.SylTags.Value);
                     if (current_syllables(syl_cnt) < numel(elements{file_loc_in_keys}.segType))
@@ -1045,7 +1045,7 @@ function SongAnnotationGUI(varargin)
         if isempty(elements{file_loc_in_keys}.segType)
                 elements{file_loc_in_keys}.segFileStartTimes =  new_rec_minx;
                 elements{file_loc_in_keys}.segAbsStartTimes = ...
-                    getFileTime(filename) + elements{file_loc_in_keys}.segFileStartTimes/(24*60*60);
+                    GUI_getFileTime(filename) + elements{file_loc_in_keys}.segFileStartTimes/(24*60*60);
                 elements{file_loc_in_keys}.segFileEndTimes = new_rec_maxx;
                 elements{file_loc_in_keys}.segType = syl_id;
                 axes(ax); %hold off;
@@ -1079,7 +1079,7 @@ function SongAnnotationGUI(varargin)
                     [elements{file_loc_in_keys}.segFileStartTimes(1:syl_before) new_rec_minx ...
                     elements{file_loc_in_keys}.segFileStartTimes(syl_before+1:end)];
                 elements{file_loc_in_keys}.segAbsStartTimes = ...
-                    getFileTime(filename) + elements{file_loc_in_keys}.segFileStartTimes/(24*60*60);
+                    GUI_getFileTime(filename) + elements{file_loc_in_keys}.segFileStartTimes/(24*60*60);
                 elements{file_loc_in_keys}.segFileEndTimes = ...
                     [elements{file_loc_in_keys}.segFileEndTimes(1:syl_before) new_rec_maxx ...
                     elements{file_loc_in_keys}.segFileEndTimes(syl_before+1:end)];
@@ -1087,7 +1087,7 @@ function SongAnnotationGUI(varargin)
                     [elements{file_loc_in_keys}.segType(1:syl_before); syl_id; ...
                     elements{file_loc_in_keys}.segType(syl_before+1:end)];
 
-                %phrases = return_phrase_times(elements{file_loc_in_keys});
+                %phrases = GUI_return_phrase_times(elements{file_loc_in_keys});
                 %tonset = phrases.phraseFileStartTimes(locs(cnt));
                 %toffset = phrases.phraseFileEndTimes(locs(cnt));
                
@@ -1106,7 +1106,7 @@ function SongAnnotationGUI(varargin)
         cellfun(@delete,hs); 
     end
 
-    function time = getFileTime(filename)
+    function time = GUI_getFileTime(filename)
         strparts = regexp(filename,'_', 'split');
         yr = str2double(strparts{3});
         m = str2double(strparts{4});
