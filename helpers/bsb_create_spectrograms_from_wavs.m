@@ -1,4 +1,4 @@
-function CreateSpectrogramsFromWavs(params)
+function bsb_create_spectrograms_from_wavs(params)
 % This script takes a parameters structure and creates gif and mat
 % spectrograms under the folders 'gif' and 'mat'. 
 % The list of wav files to convert is a cell array

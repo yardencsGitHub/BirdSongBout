@@ -1,4 +1,4 @@
-function time = getFileTime(filename)
+function time = GUI_getFileTime(filename)
 if strcmp(filename(end-2:end),'mat')
     filename = filename(1:end-4);
 end

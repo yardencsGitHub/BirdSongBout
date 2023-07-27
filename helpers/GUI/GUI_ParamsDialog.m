@@ -1,4 +1,4 @@
-function varargout = ParamsDialog(varargin)
+function varargout = GUI_ParamsDialog(varargin)
 % PARAMSDIALOG MATLAB code for ParamsDialog.fig
 %      PARAMSDIALOG, by itself, creates a new PARAMSDIALOG or raises the existing
 %      singleton*.

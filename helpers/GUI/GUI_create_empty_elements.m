@@ -1,4 +1,4 @@
-function [keys, elements, templates] = create_empty_elements(DIR,bird_exper_name,exper)
+function [keys, elements, templates] = GUI_create_empty_elements(DIR,bird_exper_name,exper)
     % creates the basic structures for annotating all wav files in DIR
     % input the bird's name in bird_exper_name
     elements = {};

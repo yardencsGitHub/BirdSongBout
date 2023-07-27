@@ -1,6 +1,6 @@
-function [ret,z,L]=LCSubstr(s,t)
-%LCSSubStr is a function that return two string's largest common part
-% Dr. XU Zhiping, School of Computer Scicence, Fudan University
+function [ret,z,L]=bsb_LCSubstr(s,t)
+% LCSSubStr is a function that return two string's largest common part
+% Developed by Dr. XU Zhiping, School of Computer Scicence, Fudan University
 % --------------------------------------------------------------------
 %  
 %	Usage:

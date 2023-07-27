@@ -1,4 +1,10 @@
 function [elements, keys] = update_annotation_from_ML_estimates(path_annotation,path_templates,path_estimates,varargin)
+% This script was used in the early stages of developing TweetyNet
+% It received the network estimates and updated the annotation structure to
+% include annotated segments. 
+% The script also applied the post-processing steps of short segment
+% rejection and majority voting.
+
 MinSylDuration = 0.005; % minimal syllable duration = 5 mSec
 %addpath(genpath('/Users/yardenc/Documents/Experiments/Code and Hardware Dev/TimOs'));
 params = load(path_annotation);

@@ -1,4 +1,4 @@
-function [on_times,off_times] = syllable_envelope(signal,t,thr,min_gap,min_syl)
+function [on_times,off_times] = GUI_syllable_envelope(signal,t,thr,min_gap,min_syl)
 signal = reshape(signal,1,numel(signal));
 dt = mean(diff(t));
 % parameters

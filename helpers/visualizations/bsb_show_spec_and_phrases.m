@@ -1,3 +1,6 @@
+% This is a test script that loaded already existing spectrogram files
+% (including the time and frequency vectors) and visualized them with the
+% phrases annotated on top 
 %%
 addpath(genpath('/Users/yardenc/Documents/Experiments/Code and Hardware Dev/GitHub/zftftb'));
 addpath(genpath('/Users/yardenc/Documents/Experiments/Code and Hardware Dev/GitHub/VideoAnalysisPipeline'));

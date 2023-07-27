@@ -40,7 +40,7 @@ if ismember(1,steps_to_run)
     wavs = CreateWavsList(workDIR,startfrom);
     params.wavs = wavs;
     save(path_to_parameters,'params');
-    CreateSpectrogramsFromWavs(params);
+    bsb_create_spectrograms_from_wavs(params);
     disp('done creating spectrograms');
 end
 %% 2: add manual annotation and create training set
@@ -50,10 +50,13 @@ end
 if ismember(2,steps_to_run)
     clc;
     cd(workDIR);
-    add_annotation_to_mat(workDIR,annotation_file,template_file);
-    display('Done creating training set');
+    bsb_add_annotation_to_mat(workDIR,annotation_file,template_file);
+    disp('Done creating training set');
 end
 %% 3: now use the estimates to create the automatic annotation files
+% This step is now replaced by the vak python library
+% (https://github.com/vocalpy/vak) that generates a .csv version of the
+% annotation.
 % Before running this part you need to use the annotated training set to
 % create a TweetyNet model and use it to estimate labels in all the
 % dataset.

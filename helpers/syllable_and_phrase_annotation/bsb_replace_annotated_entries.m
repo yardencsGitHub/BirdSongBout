@@ -1,4 +1,4 @@
-function [new_elements] = replace_annotated_entries(annotation_file,template_file,entry_file_list, DIR)
+function [new_elements] = bsb_replace_annotated_entries(annotation_file,template_file,entry_file_list, DIR)
 % Inputs:
 % annotation_file, in the current directory or as a full path, is in the 
 % Tweet format and contains 'elements' and 'keys'
