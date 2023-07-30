@@ -1,4 +1,4 @@
-function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_date_times, song_start_offests] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_date_times, song_start_offests] = bsb_convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:

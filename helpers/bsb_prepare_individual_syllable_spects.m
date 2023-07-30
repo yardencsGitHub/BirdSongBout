@@ -1,4 +1,4 @@
-function Prepare_individual_syllable_spects(path_to_annotation,path_to_audio,path_to_target)
+function bsb_prepare_individual_syllable_spects(path_to_annotation,path_to_audio,path_to_target)
 % This script prepares spectrogram snippets of all syllables and creates
 % files for those syllable classes.
 %   Prepare_individual_syllable_spects(path_to_annotation,path_to_audio)

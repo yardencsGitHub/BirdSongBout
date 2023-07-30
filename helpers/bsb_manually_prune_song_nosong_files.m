@@ -1,4 +1,4 @@
-function manually_prune_song_nosong_files(DIR,firstfilenum)
+function bsb_manually_prune_song_nosong_files(DIR,firstfilenum)
 % This script gets a directory DIR that has only subdirectories with date names as produced by 'zftftb_song_chop.m'
 % Each date folder in the format yyyy-mm-dd must have the subfolder
 % 'chop_data' that has the subfolders 'wav' and 'gif'

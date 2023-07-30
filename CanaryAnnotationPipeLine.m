@@ -37,7 +37,7 @@ if ismember(1,steps_to_run)
     cd(workDIR);
     rmpath(genpath(fullfile(GitHubDir,'VideoAnalysisPipeline/'))); % just to be sure
     startfrom = 1; % change this if you wish to ignore the first files in the list.
-    wavs = CreateWavsList(workDIR,startfrom);
+    wavs = bsb_create_wavs_list(workDIR,startfrom);
     params.wavs = wavs;
     save(path_to_parameters,'params');
     bsb_create_spectrograms_from_wavs(params);

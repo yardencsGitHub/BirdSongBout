@@ -1,4 +1,4 @@
-function helper_function_create_rolling_sonogram_movie(wav_filepath,varargin)
+function bsb_create_rolling_sonogram_movie(wav_filepath,varargin)
 % This function takes an audio file and creates a movie of its sonogram
     dt = 1/30;
     window = 3;

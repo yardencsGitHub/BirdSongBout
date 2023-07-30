@@ -1,4 +1,4 @@
-function [hndls, syls, degrees, probs, freqs, DATA] = Create_PST_from_annotation(path_to_annotation_file,varargin) 
+function [hndls, syls, degrees, probs, freqs, DATA] = bsb_create_pst_from_annotation(path_to_annotation_file,varargin) 
 %% Create PSTs
 % This script creates the PSTs and figures
 % To reduce noise some rare syllables are removed (the variable 'ignore_entries') and the criterion for
@@ -10,7 +10,10 @@ function [hndls, syls, degrees, probs, freqs, DATA] = Create_PST_from_annotation
 % the same syllable class and were separated due to user OCD.. :)
 % 'include_zero' is 0/1 for including the label '0' (in birds 853 and
 % 3022), 'min_phrases' sets the minimal # of phrases per song bout to
-% include
+% include.
+
+% The script currently uses a pre-defined set of colors, hard coded in a
+% filename. This should change in future passes
 %% repos. requirements: pst, BirdSongBout
 addpath(genpath('/Users/yardenc/Documents/GitHub/pst'),'-end'); %_yc
 addpath(genpath('/Users/yardenc/Documents/GitHub/BirdSongBout'),'-end');
@@ -67,7 +70,7 @@ for i=1:2:nparams
 end
 
 %%
-[DATA, syls] = convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,... 
+[DATA, syls] = bsb_convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,... 
      include_zero,min_phrases,'onset_sym',onset_sym,'offset_sym',offset_sym,'maxsep',MaxSep);
 if randomsample > 0
     rp = randperm(numel(DATA));

@@ -1,4 +1,4 @@
-function new_keys = repair_duplicate_keys(input_keys, input_elements, num_header_chars, min_gap, time_buffer)
+function new_keys = bsb_repair_duplicate_keys(input_keys, input_elements, num_header_chars, min_gap, time_buffer)
 % Author: Yarden, January 2022
 % 
 % This function repairs the file name cell array 'keys' of the 'Tweet'

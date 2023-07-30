@@ -1,4 +1,4 @@
-function move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,datetime_tokenizer_func,num_counter_digits)
+function bsb_move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,datetime_tokenizer_func,num_counter_digits)
 %%
 % This script assumes that the folder 'source_dir' has a set of subfolders
 % with the names that match recording dates. These subfolders must be in

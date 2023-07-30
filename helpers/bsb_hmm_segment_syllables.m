@@ -1,7 +1,11 @@
-function tot = hmm_segment_syllables(s,labels,fbins)
-% This script takes the spectrogram s (time x freq) and the labels
-% (integers) and returns a vector of 0s,1s for silence and audiotion segments
-% the input 'fbins' = [bin_min bin_max] holds the min (max) frequency bins to sum the spectrogram 
+function tot = bsb_hmm_segment_syllables(s,labels,fbins)
+% This script takes the spectrogram s (time x freq) and an indexing vector
+% 'labels'
+% (integers, e.g. annotating the timebins in diff. phrases) and returns a vector of 0s,1s for silence and audition segments
+% the input 'fbins' = [bin_min bin_max] holds the min (max) frequency bins to sum the spectrogram.
+
+% The states are estimated using a 2-state HMM with gaussian emissions
+
     nstates = 2;
     dlabels = find(diff([0 labels 0]) ~= 0);
     tot = zeros(1,size(s,2));
