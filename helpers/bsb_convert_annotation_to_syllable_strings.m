@@ -1,4 +1,4 @@
-function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_indices,song_durations, file_date_times, song_start_offests, brainard_features, tchernichovski_features] = convert_annotation_to_syllable_strings(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, durations, gaps, phrase_idxs, syllables, file_numbers, file_day_indices,song_durations, file_date_times, song_start_offests, brainard_features, tchernichovski_features] = bsb_convert_annotation_to_syllable_strings(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -124,7 +124,7 @@ end
 if flag == 1
     resmat = [];
     state_labels = [];
-    disp(['join or ignore lists overlap'])
+    disp('join or ignore lists overlap')
     return;
 end
 if ~isempty(calc_brainard)
@@ -174,6 +174,7 @@ actual_syllables = [];
 file_date_nums = [];
 file_numbers = [];
 song_durations = []; file_date_times=[]; song_start_offests=[];
+% Main loop: Go over all files
 for fnum = 1:numel(keys)
     disp([fnum numel(keys)])
     curr_date_num = return_date_num(keys{fnum});
@@ -208,7 +209,7 @@ for fnum = 1:numel(keys)
     end
     % Now calculate all data per songs
     try
-        phrases = return_phrase_times(element,'max_separation',MaxSyllableSep);
+        phrases = bsb_return_phrase_times(element,'max_separation',MaxSyllableSep);
         curr_mids = (element.segFileEndTimes + element.segFileStartTimes)/2;
         curr_durations = (element.segFileEndTimes - element.segFileStartTimes);
         curr_gaps = (element.segFileStartTimes(2:end) - element.segFileEndTimes(1:end-1));
@@ -223,7 +224,8 @@ for fnum = 1:numel(keys)
         curr_idxs = ones(1,numel(locs));
         curr_locs = [locs];
         curr_phrase_idx = 1;
-        curr_song_datetime = get_date_from_file_name(keys{fnum});
+        curr_song_datetime = get_date_from_file_name(keys{fnum}); % This function is specific to one file name format.
+        % Consider using bsb_extrat_date_string_trom_filename in the future
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 locs = find(curr_mids > phrases.phraseFileStartTimes(phrasenum + 1) & curr_mids < phrases.phraseFileEndTimes(phrasenum + 1));

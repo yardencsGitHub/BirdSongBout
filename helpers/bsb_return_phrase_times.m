@@ -1,4 +1,4 @@
-function res = return_phrase_times(element,varargin)
+function res = bsb_return_phrase_times(element,varargin)
     max_separation = 0.25;
     nparams=length(varargin);
     for i=1:2:nparams

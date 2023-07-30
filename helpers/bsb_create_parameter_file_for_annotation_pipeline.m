@@ -1,4 +1,4 @@
-function params = create_parameter_file_for_annotation_pipeline(target_file,varargin)
+function params = bsb_create_parameter_file_for_annotation_pipeline(target_file,varargin)
 % Yarden 2022
 % This function creates a .mat file with all the parameters needed to run
 % the script ../GitHub/BirdSongBout/CanaryBoutPipeLine.m
