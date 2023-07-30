@@ -1,4 +1,4 @@
-function Ims = create_display_sonograms(WavPath,file_names,time_windows,output_folder,varargin)
+function Ims = bsb_create_display_sonograms(WavPath,file_names,time_windows,output_folder,varargin)
 % this script makes spectrograms for display
 % Inputs:
 %   WavPath (string) - path where the audio files live

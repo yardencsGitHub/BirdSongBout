@@ -4,7 +4,7 @@
 % 'FindOutliers.ipynb' (found in ../GitHub/BirdSongBout/helpers
 % The script needs the matching annotation and template files and will
 % create a new version of those with annotated outliers appended with '00'
-function Add_outliers_to_annotation(work_folder, orig_annotation,orig_template,varargin)
+function bsb_add_outliers_to_annotation(work_folder, orig_annotation,orig_template,varargin)
 % Inputs:
 %   work_folder - full path to folder that holds the results of the outlier
 %       detector, containing annotation of outlier syllables as 'output' -

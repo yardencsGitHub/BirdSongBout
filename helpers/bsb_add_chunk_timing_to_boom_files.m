@@ -1,4 +1,4 @@
-function add_chunk_timing_to_boom_files(DIR,filename_expression)
+function bsb_add_chunk_timing_to_boom_files(DIR,filename_expression)
 % This script gets a directory DIR that has only subdirectories with date names as produced by 'zftftb_song_chop.m'
 % Each date folder in the format yyyy-mm-dd must have the subfolder
 % 'chop_data' that has the subfolders 'wav', 'idx', and 'gif'
