@@ -135,7 +135,7 @@ for fnum = 1:numel(keys)
     end
     
     try
-        phrases = return_phrase_times(element,'max_separation',MaxSyllableSep);
+        phrases = bsb_return_phrase_times(element,'max_separation',MaxSyllableSep);
         
         currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
         currsyls = [-1000 phrases.phraseType(1)];
