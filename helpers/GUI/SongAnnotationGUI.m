@@ -46,7 +46,7 @@ function SongAnnotationGUI(varargin)
         otherwise
             settings_params.map_caxis = [0 3];
     end
-    h_params = GUI_ParamsDialog('Position',settings_params.window_positions(1,:));
+    h_params = ParamsDialog('Position',settings_params.window_positions(1,:));
     params_handles = get(h_params,'UserData');
     %% get working directory .. wait for it
     params_handles.dir_name.UserData = 0;
@@ -96,7 +96,7 @@ function SongAnnotationGUI(varargin)
     params_handles.SylTags.String = tmp;
     n_syllables = numel(syllables);
     freq_min = 300; freq_max = 8000;
-    colors = GUI_GUI_distinguishable_colors(n_syllables,'w');
+    colors = GUI_distinguishable_colors(n_syllables,'w');
     if exist(fullfile(DIR,annotation_filename))
         load(fullfile(DIR,annotation_filename),'keys','elements');
         filename = keys{1};
