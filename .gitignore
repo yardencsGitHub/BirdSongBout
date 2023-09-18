@@ -27,3 +27,9 @@ CanaryBoutPipeLine.m~
 =======
 >>>>>>> origin/master
 *.m~
+pipelines/CanaryBoutPipeLine.asv
+helpers/syllable_and_phrase_annotation/.DS_Store
+helpers/external/.DS_Store
+helpers/create_parameter_file_for_annotation_pipeline.asv
+helpers/.DS_Store
+.DS_Store
