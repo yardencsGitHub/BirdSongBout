@@ -272,7 +272,7 @@ function file_list_Callback(hObject, eventdata, handles)
 pre = '<HTML><FONT color="'; post = '</FONT></HTML>';
 elements = handles.file_list.UserData;
 taglist = cellfun(@str2num,handles.SylTags.String);
-colors = distinguishable_colors(numel(taglist),'w');
+colors = GUI_distinguishable_colors(numel(taglist),'w');
 current_tags = unique(elements{handles.file_list.Value}.segType);
 tagtext = {};
 for tagnum = 1:numel(current_tags)
@@ -341,7 +341,7 @@ function file_list_KeyPressFcn(hObject, eventdata, handles)
 pre = '<HTML><FONT color="'; post = '</FONT></HTML>';
 elements = handles.file_list.UserData;
 taglist = cellfun(@str2num,handles.SylTags.String);
-colors = distinguishable_colors(numel(taglist),'w');
+colors = GUI_distinguishable_colors(numel(taglist),'w');
 current_tags = unique(elements{handles.file_list.Value}.segType);
 tagtext = {};
 for tagnum = 1:numel(current_tags)
@@ -385,7 +385,7 @@ function file_list_ButtonDownFcn(hObject, eventdata, handles)
 pre = '<HTML><FONT color="'; post = '</FONT></HTML>';
 elements = handles.file_list.UserData;
 taglist = cellfun(@str2num,handles.SylTags.String);
-colors = distinguishable_colors(numel(taglist),'w');
+colors = GUI_distinguishable_colors(numel(taglist),'w');
 current_tags = unique(elements{handles.file_list.Value}.segType);
 tagtext = {};
 for tagnum = 1:numel(current_tags)
