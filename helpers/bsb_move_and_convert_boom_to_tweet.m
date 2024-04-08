@@ -1,4 +1,4 @@
-function bsb_move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,name_expression,num_counter_digits)
+function bsb_move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,name_expression,num_counter_digits,varargin)
 %%
 % This script assumes that the folder 'source_dir' has a set of subfolders
 % with the names that match recording dates. These subfolders must be in
@@ -13,6 +13,14 @@ function bsb_move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,name_
 % names to meet the TweetVision format:
 % birdname_serial#_yyyy_mm_dd_hr_mn
 %%
+shift_digits = 0;
+nparams=length(varargin);
+for i=1:2:nparams
+	switch lower(varargin{i})
+        case 'shift_digits'
+			shift_digits=varargin{i+1};
+    end
+end
 dirs = dir(source_dir);
 file_cnt = 1;
 for dirnum = 1:numel(dirs)
@@ -22,7 +30,11 @@ for dirnum = 1:numel(dirs)
         FILES = dir(fullfile(source_dir,dirs(dirnum).name,'chop_data','wav','*.wav'));
         for fnum = 1:numel(FILES)
             fname = FILES(fnum).name;
-            dateobj = return_dateobj(fname,name_expression);
+            if numel(fname) == numel(name_expression)
+                dateobj = return_dateobj(fname,name_expression,0);
+            else
+                dateobj = return_dateobj(fname,name_expression,shift_digits);
+            end
 %             if isempty(datetime_tokenizer_func)
 %                 tokens = regexp(fname,'_','split');
 %                 tokens = regexp(tokens{2},'-','split');
@@ -42,8 +54,8 @@ for dirnum = 1:numel(dirs)
     end
 end
 
-function dateobj = return_dateobj(input_str,filename_expression)
-        year_idx = regexp(filename_expression,'yyyy');
+function dateobj = return_dateobj(input_str,filename_expression,dig_shift)
+        year_idx = regexp(filename_expression,'yyyy')+dig_shift;
         if numel(year_idx) ~= 1
             disp('error in year formatting');
             dateobj = [];
@@ -52,7 +64,7 @@ function dateobj = return_dateobj(input_str,filename_expression)
             year_idx = year_idx:(year_idx+3);
         end
     
-        month_idx = regexp(filename_expression,'MM');
+        month_idx = regexp(filename_expression,'MM')+dig_shift;
         if numel(month_idx) ~= 1
             disp('error in month formatting');
             dateobj = [];
@@ -61,7 +73,7 @@ function dateobj = return_dateobj(input_str,filename_expression)
             month_idx = month_idx:(month_idx+1);
         end
     
-        day_idx = regexp(filename_expression,'dd');
+        day_idx = regexp(filename_expression,'dd')+dig_shift;
         if numel(day_idx) ~= 1
             disp('error in day formatting');
             dateobj = [];
@@ -70,7 +82,7 @@ function dateobj = return_dateobj(input_str,filename_expression)
             day_idx = day_idx:(day_idx+1);
         end
     
-        hour_idx = regexp(filename_expression,'HH');
+        hour_idx = regexp(filename_expression,'HH')+dig_shift;
         if numel(hour_idx) ~= 1
             disp('error in hour formatting');
             dateobj = [];
@@ -79,7 +91,7 @@ function dateobj = return_dateobj(input_str,filename_expression)
             hour_idx = hour_idx:(hour_idx+1);
         end
     
-        minute_idx = regexp(filename_expression,'mm');
+        minute_idx = regexp(filename_expression,'mm')+dig_shift;
         if numel(minute_idx) ~= 1
             disp('error in minute formatting');
             dateobj = [];
@@ -88,7 +100,7 @@ function dateobj = return_dateobj(input_str,filename_expression)
             minute_idx = minute_idx:(minute_idx+1);
         end
     
-        second_idx = regexp(filename_expression,'ss');
+        second_idx = regexp(filename_expression,'ss')+dig_shift;
         if numel(second_idx) ~= 1
             disp('error in second formatting');
             dateobj = [];
