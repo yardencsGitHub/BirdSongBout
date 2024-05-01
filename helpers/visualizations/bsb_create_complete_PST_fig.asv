@@ -189,7 +189,6 @@ function fh = bsb_create_complete_PST_fig(TREE,syls,ALPHABET,varargin)
             end
         end
     end
-    close(f_hndls);
         
     function explore_branch(TREE,syls,level_num,branch_num)
     %     switch bnum
@@ -207,7 +206,6 @@ function fh = bsb_create_complete_PST_fig(TREE,syls,ALPHABET,varargin)
                %display([level_num next_branch_num])
                display(['level ' num2str(level_num) ' Branch: ' num2str(syls(TREE(level_num + 1).string{branches(next_branch_num)}))]);
                f=figure; ax = axes; h_pie=pie(ax,double(TREE(level_num+1).g_sigma_s(:,branches(next_branch_num))),zeros(1,numel(syls)),cellfun(@num2str,syl_labels,'UniformOutput',0));
-               f_hndls = [f_hndls; f];
                degrees = [degrees; level_num]; 
                probs = [probs; TREE(level_num + 1).p(branches(next_branch_num))];
                freqs = [freqs; TREE(level_num + 1).f(branches(next_branch_num))];
