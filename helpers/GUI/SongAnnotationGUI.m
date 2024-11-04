@@ -553,7 +553,7 @@ function SongAnnotationGUI(varargin)
                 plot_full_amplitude_envelope(ax_temp);
                 xlim(ax_temp,[tonset toffset]);
                 h_line = imline(ax_temp,[tonset settings_params.tmpthr; toffset settings_params.tmpthr]);
-            case 'f' % zoom
+            case 'm' % magnify
                 range_rect = getrect(ax); 
                 tonset = range_rect(1);
                 toffset = range_rect(1)+range_rect(3);
@@ -594,7 +594,41 @@ function SongAnnotationGUI(varargin)
                         end
                         
                  end
-                      update_elements;
+                 update_elements;
+            case 'f' %update borders to threshold crossings - left borders only
+                for syl_cnt = 1:numel(current_syllables) 
+                        currpos = get_pos(syl_cnt);    
+                                                 
+                        rectpos = get_pos(syl_cnt);
+                        rec_center = rectpos(1) + rectpos(3)/2;
+                        mock_dist = abs(mock_centers - rec_center);
+                        mock_loc = min(find(mock_dist == min(mock_dist)));
+                        targetx = [mock_ons(mock_loc) mock_ofsettings_params.FS(mock_loc)];
+                        numtags = setdiff(1:numel(elements{file_loc_in_keys}.segType),current_syllables(syl_cnt)) ;
+                        if ~any((elements{file_loc_in_keys}.segFileStartTimes(numtags) < targetx(2)) & ...
+                                (elements{file_loc_in_keys}.segFileEndTimes(numtags) > targetx(1)))
+                            set_pos(syl_cnt,[mock_ons(mock_loc) rectpos(2) rectpos(3)+(rectpos(1)-mock_ons(mock_loc)) rectpos(4)]);
+                        end
+                        
+                 end
+                 update_elements;
+            case 'h' %update borders to threshold crossings - right borders only
+                for syl_cnt = 1:numel(current_syllables) 
+                        currpos = get_pos(syl_cnt);    
+                                                 
+                        rectpos = get_pos(syl_cnt);
+                        rec_center = rectpos(1) + rectpos(3)/2;
+                        mock_dist = abs(mock_centers - rec_center);
+                        mock_loc = min(find(mock_dist == min(mock_dist)));
+                        targetx = [mock_ons(mock_loc) mock_ofsettings_params.FS(mock_loc)];
+                        numtags = setdiff(1:numel(elements{file_loc_in_keys}.segType),current_syllables(syl_cnt)) ;
+                        if ~any((elements{file_loc_in_keys}.segFileStartTimes(numtags) < targetx(2)) & ...
+                                (elements{file_loc_in_keys}.segFileEndTimes(numtags) > targetx(1)))
+                            set_pos(syl_cnt,[rectpos(1) rectpos(2) (mock_ofsettings_params.FS(mock_loc)-rectpos(1)) rectpos(4)]);
+                        end
+                        
+                 end
+                 update_elements;
             case 'u' % update parameters and borders
                 if params_handles.delete_tag_button.UserData == 1
                     elements = params_handles.file_list.UserData;
