@@ -11,6 +11,7 @@ function CanaryAnnotationPipeLine(path_to_parameters,steps_to_run)
 %   steps_to_run: vector of integers - the steps to run
 
 % The pipeline includes the steps:
+% 0: (if needed) Convert wav file names to the Tweet format (birdname_index_date_time)
 % 1: Create spectrograms for all wav files
 % 2: add manual annotation and create training set
 % 3: use TweetyNet's estimates to create the automatic annotation files
@@ -20,6 +21,7 @@ function CanaryAnnotationPipeLine(path_to_parameters,steps_to_run)
 % Several steps require manual work between them (annotated below)
 
 % [1] 1. Cohen, Y. et al. Automated annotation of birdsong with a neural network that segments spectrograms. eLife 11, e63853 (2022).
+
 %% prep: set folders dependencies
 load(path_to_parameters);
 workDIR = params.workDIR;
@@ -32,6 +34,12 @@ GitHubDir = params.GitHubDir;
 disp('done names');
 %%
 addpath(genpath(fullfile(GitHubDir,'BirdSongBout')),'-end');
+%% 0: prep: convert file names to Tweet format
+% This is an ad-hoc step so it needs editing for each new case
+if ismember(0,steps_to_run)
+    s = 'lb9rb16_mman_lcbrr_hvc_ephys_241227_061704_chunk_1_onset_yyyy_MM_dd_HH_mm_ss.wav';
+    bsb_move_and_convert_wavfiles_to_tweet('lb9rb16',params.tempDir,params.tempDir,s,5,'minute_place',2);
+end
 %% 1: Create spectrograms from all WAV files in the working directory
 if ismember(1,steps_to_run)
     cd(workDIR);
@@ -64,10 +72,11 @@ if ismember(3,steps_to_run)
     cd(workDIR);
     [elements, keys] = update_annotation_from_ML_estimates(annotation_file,template_file,estimates_file,'dt',0.002698412698413,'is_new',1);
     disp('Done creating new elements');
+    % save new annotation file
+    save(new_annotation_file,'keys','elements');
 end
 
-% save new annotation file
-save(new_annotation_file,'keys','elements');
+
 
 %% 4: create single syllable snippet spectrograms
 % To run classification tests and separation of syllable classes

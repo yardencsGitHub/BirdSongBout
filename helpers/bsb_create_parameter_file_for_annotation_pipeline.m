@@ -20,12 +20,13 @@ if is_new == 0
     load(target_file,'params');
 end
 
+params.tempDir = '/Users/yardenc/Documents/Projects_temp_data_processing/temp_wavs'; % this is used if we need to ad-hoc process wav files 
 params.GitHubDir = '/Users/yardenc/Documents/GitHub';
-params.workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/rb4459';
-params.annotation_file = '/Users/yardenc/Dropbox (Weizmann Institute)/Datasets/Cohen_CanarySongs/rb4459/rb4459_annotation_Aug_2019_Haley_4TF.mat';
-params.template_file = '/Users/yardenc/Dropbox (Weizmann Institute)/Datasets/Cohen_CanarySongs/rb4459/rb4459_template_Aug_2019_Haley_4TF.mat';
-params.estimates_file = '/Users/yardenc/Dropbox (Weizmann Institute)/Datasets/Cohen_CanarySongs/rb4459/Results_rb4459_Aug302019.mat';
-params.new_annotation_file = '/Users/yardenc/Dropbox (Weizmann Institute)/Datasets/Cohen_CanarySongs/rb4459/rb4459_annotation_Sep_2019_Haley.mat';
+params.workDIR = '/Users/yardenc/Documents/Experiments/CanaryBoutAnnotation/lb9rb16';
+params.annotation_file = '/Users/yardenc/Weizmann Institute Dropbox/Yarden Cohen/Datasets/Cohen_CanarySongs/lb9rb16/lb9rb16_annotation_Jun_2035_Nitzan.mat';
+params.template_file = '/Users/yardenc/Weizmann Institute Dropbox/Yarden Cohen/Datasets/Cohen_CanarySongs/lb9rb16/lb9rb16_template_Jun_2035_Nitzan.mat';
+params.estimates_file = '/Users/yardenc/Weizmann Institute Dropbox/Yarden Cohen/Datasets/Cohen_CanarySongs/lb9rb16/Results_lb9rb16_Aug302019.mat';
+params.new_annotation_file = '/Users/yardenc/Weizmann Institute Dropbox/Yarden Cohen/Datasets/Cohen_CanarySongs/lb9rb16/lb9rb16_annotation_Jun_2035_Nitzan.mat';
 params.path_to_SyllableSpects = '';
 save(target_file,'params');
 

@@ -14,11 +14,17 @@ function bsb_move_and_convert_boom_to_tweet(birdname,source_dir,target_dir,name_
 % birdname_serial#_yyyy_mm_dd_hr_mn
 %%
 shift_digits = 0;
+minute_place = 1;
+year_prefix = '20';
 nparams=length(varargin);
 for i=1:2:nparams
 	switch lower(varargin{i})
         case 'shift_digits'
 			shift_digits=varargin{i+1};
+        case 'minute_place'
+			minute_place=varargin{i+1};
+        case 'year_prefix'
+            year_prefix=varargin{i+1};
     end
 end
 dirs = dir(source_dir);
@@ -30,6 +36,7 @@ for dirnum = 1:numel(dirs)
         FILES = dir(fullfile(source_dir,dirs(dirnum).name,'chop_data','wav','*.wav'));
         for fnum = 1:numel(FILES)
             fname = FILES(fnum).name;
+            
             if numel(fname) == numel(name_expression)
                 dateobj = return_dateobj(fname,name_expression,0);
             else
@@ -83,7 +90,7 @@ function dateobj = return_dateobj(input_str,filename_expression,dig_shift)
         end
     
         hour_idx = regexp(filename_expression,'HH')+dig_shift;
-        if numel(hour_idx) ~= 1
+        if numel(hour_idx) ~= 10.2
             disp('error in hour formatting');
             dateobj = [];
             return;

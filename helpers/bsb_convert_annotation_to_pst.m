@@ -1,4 +1,4 @@
-function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_date_times, song_start_offests] = bsb_convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
+function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_date_times, song_start_offests, phrase_start_times, phrase_end_times] = bsb_convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
 % Inputs:
@@ -49,6 +49,8 @@ end
 
 if ~exist(path_to_annotation_file)
     DATA = [];
+    phrase_start_times = []; 
+    phrase_end_times = [];
     file_numbers = [];
     display(['Could not open annotation file: ' path_to_annotation_file])
     return;
@@ -80,6 +82,8 @@ load(path_to_annotation_file);
 
 DATA = {};
 file_numbers = [];
+phrase_start_times = {}; 
+phrase_end_times = {};
 if isempty(orig_syls)
     syllables = [];
     for fnum = 1:numel(keys)  
@@ -138,16 +142,22 @@ for fnum = 1:numel(keys)
         phrases = bsb_return_phrase_times(element,'max_separation',MaxSyllableSep);
         
         currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
+        curr_phrase_start_times = [phrases.phraseFileStartTimes(1)]; 
+        curr_phrase_end_times = [phrases.phraseFileEndTimes(1)];
         currsyls = [-1000 phrases.phraseType(1)];
         curr_song_onset = phrases.phraseFileStartTimes(1);
         curr_song_datetime = get_date_from_file_name(keys{fnum});
         for phrasenum = 1:numel(phrases.phraseType)-1
             if (phrases.phraseFileStartTimes(phrasenum + 1) -  phrases.phraseFileEndTimes(phrasenum) <= MaxSep)
                 currDATA = [currDATA AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                curr_phrase_start_times = [curr_phrase_start_times phrases.phraseFileStartTimes(phrasenum + 1)]; 
+                curr_phrase_end_times = [curr_phrase_end_times phrases.phraseFileEndTimes(phrasenum + 1)];
                 currsyls = [currsyls phrases.phraseType(phrasenum + 1)];
             else
                 if (numel(currDATA) >= min_phrases)
                     DATA = {DATA{:} [onset_sym currDATA offset_sym]};
+                    phrase_start_times = {phrase_start_times{:} curr_phrase_start_times}; 
+                    phrase_end_times = {phrase_end_times{:} curr_phrase_end_times};
                     file_numbers = [file_numbers fnum];
                     file_date_nums = [file_date_nums; curr_date_num];
                     actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
@@ -156,12 +166,16 @@ for fnum = 1:numel(keys)
                     song_start_offests = [song_start_offests curr_song_onset];
                 end
                 currDATA = [AlphaNumeric(syllables == phrases.phraseType(phrasenum + 1))];
+                curr_phrase_start_times = [phrases.phraseFileStartTimes(phrasenum + 1)]; 
+                curr_phrase_end_times = [phrases.phraseFileEndTimes(phrasenum + 1)];
                 currsyls = [-1000 phrases.phraseType(phrasenum + 1)];
                 curr_song_onset = phrases.phraseFileStartTimes(phrasenum + 1);
             end  
         end
         if (numel(currDATA) >= min_phrases)
             DATA = {DATA{:} [onset_sym currDATA offset_sym]};
+            phrase_start_times = {phrase_start_times{:} curr_phrase_start_times}; 
+            phrase_end_times = {phrase_end_times{:} curr_phrase_end_times};
             file_numbers = [file_numbers fnum];
             file_date_nums = [file_date_nums; curr_date_num];
             actual_syllables = unique(union(actual_syllables,unique([currsyls 1000])));
