@@ -1,6 +1,7 @@
 function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_date_times, song_start_offests, phrase_start_times, phrase_end_times] = bsb_convert_annotation_to_pst(path_to_annotation_file,ignore_dates,ignore_entries,join_entries,include_zero,min_phrases,varargin)
 % This script takes an annotation file and the required DATA structure to
 % run Jeff Markowitz's PST
+%
 % Inputs:
 %   path_to_annotation_file - Full or relative
 %   ignore_dates - days of data to be ignored.
@@ -9,6 +10,22 @@ function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_
 %   to treat as belonging to the same state. The lists shouldn't overlap
 %   (incl. with the ignored lables)
 %   include_zero - should 0 be a label?
+%
+% Optional inputs (Name, Value pairs):
+% onset_sym, offset_sym (one character string, e.g. '[') 
+%  A character to add to the beginning and end of phrase sequences.
+%  It should not be one of the Alphanumeric characters 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+%  Those are reserved for syllable types.
+% orig_syls (vector of integers): tags of syllables to assign to the
+% alphsnumeric labels. This is used if some syllable classes may be missing
+% and we don't want to reassign characters to syllable types (e.g. in case
+% of looking at subsets of the data.
+% MaxSep, MaxSyllableSep (double) - time in sec to use for decision on
+% separating songs or phrases because of a time gap larger than those values.
+% edge_gap and wav_files_path (double and string) - Set 'edge_gap' to a
+% value larger than 0 to discard songs that start or end too close to the
+% edge of the recording file. 'wav_files_path' indicates the full path to
+% the WAV files to get their durations.
 %
 % Output:
 %   DATA - a cell array of strings
@@ -21,7 +38,6 @@ function [DATA, syllables, file_numbers, file_day_indices, song_durations, file_
 %   entries in DATA relative to the recording file onset (not the song
 %   onset since there can be more than one song per file)
 
-AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 onset_sym = '1';
 offset_sym = '2';
 orig_syls = [];
@@ -30,6 +46,12 @@ MaxSep = 0.5; % maximal inter-phrase separation within a bout (sec).
 MaxSyllableSep = 0.5; % maximal inter-syllable separation within a phrase (sec) 
 % Larger within-phrase inter-syllable separation will break the phrase into
 % different phrases
+edge_gap = 0; % minimal time gap (in sec) from the edge of file 
+% (onset or offset) that is allowed for a song. Songs that are closer than
+% this value will be discarded. Default is 0 which means no song
+% discarding. If using this option then also set 'wav_files_path' to
+% indicate where the WAV files are located to find the file durations.
+wav_files_path = '';
 
 nparams=length(varargin);
 for i=1:2:nparams
@@ -44,8 +66,14 @@ for i=1:2:nparams
             offset_sym = varargin{i+1};
         case 'syllables'
             orig_syls = varargin{i+1};
+        case 'edge_gap'
+            edge_gap = varargin{i+1};
+        case 'wav_files_path'
+            wav_files_path = varargin{i+1};
     end
 end
+
+AlphaNumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 if ~exist(path_to_annotation_file)
     DATA = [];
@@ -140,6 +168,12 @@ for fnum = 1:numel(keys)
     
     try
         phrases = bsb_return_phrase_times(element,'max_separation',MaxSyllableSep);
+
+        if edge_gap > 0.001
+            file_duration = audioinfo(fullfile(wav_files_path,keys{fnum})).Duration;
+        else
+            file_duration = 1000;
+        end
         
         currDATA = [AlphaNumeric(syllables == phrases.phraseType(1))];
         curr_phrase_start_times = [phrases.phraseFileStartTimes(1)]; 
@@ -154,7 +188,8 @@ for fnum = 1:numel(keys)
                 curr_phrase_end_times = [curr_phrase_end_times phrases.phraseFileEndTimes(phrasenum + 1)];
                 currsyls = [currsyls phrases.phraseType(phrasenum + 1)];
             else
-                if (numel(currDATA) >= min_phrases)
+                if (numel(currDATA) >= min_phrases) && ...
+                        (edge_gap < 0.001 || (curr_song_onset > edge_gap && curr_phrase_end_times(end) < (file_duration - edge_gap)))
                     DATA = {DATA{:} [onset_sym currDATA offset_sym]};
                     phrase_start_times = {phrase_start_times{:} curr_phrase_start_times}; 
                     phrase_end_times = {phrase_end_times{:} curr_phrase_end_times};
@@ -172,7 +207,8 @@ for fnum = 1:numel(keys)
                 curr_song_onset = phrases.phraseFileStartTimes(phrasenum + 1);
             end  
         end
-        if (numel(currDATA) >= min_phrases)
+        if (numel(currDATA) >= min_phrases) && ...
+                        (edge_gap < 0.001 || (curr_song_onset > edge_gap && curr_phrase_end_times(end) < (file_duration - edge_gap)))
             DATA = {DATA{:} [onset_sym currDATA offset_sym]};
             phrase_start_times = {phrase_start_times{:} curr_phrase_start_times}; 
             phrase_end_times = {phrase_end_times{:} curr_phrase_end_times};
